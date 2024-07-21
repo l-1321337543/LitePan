@@ -26,9 +26,9 @@ public class AGlobalExceptionHandlerController extends ABaseController {
             ajaxResponse.setInfo(ResponseCodeEnum.CODE_404.getMsg());
             ajaxResponse.setStatus(STATUS_ERROR);
         } else if (e instanceof BusinessException) { //业务错误
-            BusinessException businessException = (BusinessException) e;
-            ajaxResponse.setCode(businessException.getCode());
-            ajaxResponse.setInfo(businessException.getMessage());
+            BusinessException be = (BusinessException) e;
+            ajaxResponse.setCode(be.getCode() == null ? ResponseCodeEnum.CODE_600.getCode() : be.getCode());
+            ajaxResponse.setInfo(be.getMessage());
             ajaxResponse.setStatus(STATUS_ERROR);
         } else if (e instanceof BindException) { //参数类型错误
             ajaxResponse.setCode(ResponseCodeEnum.CODE_600.getCode());
