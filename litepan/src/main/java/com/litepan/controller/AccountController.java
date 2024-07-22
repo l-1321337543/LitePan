@@ -1,5 +1,7 @@
 package com.litepan.controller;
 
+import com.litepan.annotation.GlobalInterceptor;
+import com.litepan.annotation.VerifyParam;
 import com.litepan.entity.constants.Constants;
 import com.litepan.entity.dto.CreateImageCode;
 import com.litepan.entity.po.EmailCode;
@@ -38,6 +40,7 @@ public class AccountController extends ABaseController {
      * @param type 0:登录注册  1:邮箱验证码发送  默认0
      */
     @RequestMapping("/checkCode")
+//    @GlobalInterceptor
     public void checkCode(HttpServletResponse response, HttpSession session, Integer type)
             throws IOException {
         CreateImageCode vCode = new CreateImageCode(130, 38, 5, 10);
@@ -56,7 +59,11 @@ public class AccountController extends ABaseController {
 
 
     @RequestMapping("/sendEmailCode")
-    public ResponseVO<EmailCode> sendEmailCode(HttpSession session, String email, String checkCode, Integer type) {
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO<EmailCode> sendEmailCode(HttpSession session,
+                                               @VerifyParam(required = true) String email,
+                                               String checkCode,
+                                               Integer type) {
         try {
             if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY_EMAIL))) {// 校验邮件验证码
                 throw new BusinessException("图片验证码错误");
