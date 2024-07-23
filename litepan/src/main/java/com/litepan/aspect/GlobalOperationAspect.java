@@ -2,8 +2,12 @@ package com.litepan.aspect;
 
 import com.litepan.annotation.GlobalInterceptor;
 import com.litepan.annotation.VerifyParam;
+import com.litepan.enums.ResponseCodeEnum;
 import com.litepan.exception.BusinessException;
+import com.litepan.utils.StringUtils;
+import com.litepan.utils.VerifyUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -24,6 +28,8 @@ import java.lang.reflect.Parameter;
 @Component
 @Slf4j
 public class GlobalOperationAspect {
+
+    private static final String[] TYPE_BASE = {"java.lang.String", "java.lang.integer", "java.lang.Long"};
 
     /**
      * 此处定义一个可复用的切点表达式，即被@GlobalInterceptor注解标注的位置 <br>
@@ -59,40 +65,92 @@ public class GlobalOperationAspect {
             // 然而，它的缺点是性能较差，因为反射通常比直接访问方法要慢得多。
             // 此外，如果目标类有多个重载方法，你需要确保传递正确的参数类型数组来避免NoSuchMethodException。
             Object target = point.getTarget();
+            log.info("point.getTarget():{}", point.getTarget());
             String methodName = point.getSignature().getName();
             Class<?>[] parameterTypes = ((MethodSignature) point.getSignature()).getMethod().getParameterTypes();
             Method method = target.getClass().getMethod(methodName, parameterTypes);
-
             GlobalInterceptor globalInterceptor = method.getAnnotation(GlobalInterceptor.class);
+
             //是否校验参数
             if (globalInterceptor.checkParams()) {
                 validateParam(method, args);
             }
 
-        } catch (Exception e){
-            log.error("拦截器异常",e);
+        } catch (BusinessException e) {
+            log.error("全局拦截器异常", e);
+            throw e;
+        } catch (Throwable e) {
+            log.error("全局拦截器异常", e);
+            throw new BusinessException(ResponseCodeEnum.CODE_500);
         }
 
 
     }
 
+    /**
+     * 对传入方法的参数进行校验
+     *
+     * @param method 要检验参数的方法
+     * @param args   参数值数组
+     */
     private void validateParam(Method method, Object[] args) {
         Parameter[] parameters = method.getParameters();
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
             String value = String.valueOf(args[i]);
-            VerifyParam annotation = parameter.getAnnotation(VerifyParam.class);
-            if (annotation == null) {
+            VerifyParam verifyParam = parameter.getAnnotation(VerifyParam.class);
+            if (verifyParam == null) {
                 continue;
             }
-            if (annotation.required()) {
-                if (value.equals("null")) {
-                    throw new BusinessException("缺少参数：" + parameter.getName());
-                } else {
-                    log.info("参数：" + parameter.getName() + ":" + value);
-                }
+
+            /*
+            根据参数类型分两种情况，参数是基本类型和参数是对象
+
+            有两种方式获取参数类型
+            第一种
+            这种方式不会获取泛型，例如List<String> strings,获取到的类型为java.util.List
+            Class<?> type = parameter.getType();
+            String name = type.getName();
+            第二种
+            这种方式会包含泛型，例如List<String> strings,获取到的类型为java.util.List<java.lang.String>
+            String typeName = parameter.getParameterizedType().getTypeName();*/
+            if (ArrayUtils.contains(TYPE_BASE, parameter.getParameterizedType().getTypeName())) { //参数是基本类型
+                checkValue(verifyParam, value);
+            } else { //参数是对象
+                checkObjValue(parameter, value);
             }
         }
     }
+
+    //TODO 对象类型参数校验 视频没讲，在论坛项目有
+    private void checkObjValue(Parameter parameter, Object value) {
+    }
+
+    /**
+     * 对简单类型参数校验
+     *
+     * @param verifyParam 参数注解对象
+     * @param value       参数值
+     */
+    private void checkValue(VerifyParam verifyParam, Object value) {
+        boolean isEmpty = value == null || StringUtils.isEmpty(String.valueOf(value));
+        int length = value == null ? 0 : value.toString().length();
+
+        //空校验
+        if (isEmpty && verifyParam.required()) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+
+        //长度检验
+        if (!isEmpty && ((verifyParam.min() != -1 && length < verifyParam.min()) || (verifyParam.max() != -1 && length > verifyParam.max()))) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+
+        //正则校验
+        if (!isEmpty && !StringUtils.isEmpty(verifyParam.regex().getRegex()) && !VerifyUtils.verify(verifyParam.regex(), String.valueOf(value))) {
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
+    }
+
 
 }

@@ -17,13 +17,22 @@ public class StringUtils {
      * @return 生成的随机数
      */
     public static String getRandomNumber(int count) {
-//        StringBuilder builder = new StringBuilder();
-//        Random random = new Random();
-//        for (int i = 0; i < 5; i++) {
-//            builder.append(random.nextInt(10));
-//        }
-//        return builder.toString();
-//        return RandomStringUtils.random(count, true, false);
         return RandomStringUtils.randomNumeric(count);
+    }
+
+    /**
+     * 判断传入的字符串是否为空
+     *
+     * @param str 要判断的字符串
+     * @return true：为空；false：不为空
+     */
+    public static boolean isEmpty(String str) {
+
+        if (null == str || "".equals(str) || "null".equals(str) || "\u0000".equals(str)) {
+            return true;
+        } else if ("".equals(str.trim())) {
+            return true;
+        }
+        return false;
     }
 }

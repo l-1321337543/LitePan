@@ -5,6 +5,7 @@ import com.litepan.annotation.VerifyParam;
 import com.litepan.entity.constants.Constants;
 import com.litepan.entity.dto.CreateImageCode;
 import com.litepan.entity.po.EmailCode;
+import com.litepan.enums.VerifyRegexEnum;
 import com.litepan.exception.BusinessException;
 import com.litepan.service.EmailCodeService;
 import com.litepan.service.UserInfoService;
@@ -40,7 +41,7 @@ public class AccountController extends ABaseController {
      * @param type 0:登录注册  1:邮箱验证码发送  默认0
      */
     @RequestMapping("/checkCode")
-//    @GlobalInterceptor
+    @GlobalInterceptor(checkParams = true)
     public void checkCode(HttpServletResponse response, HttpSession session, Integer type)
             throws IOException {
         CreateImageCode vCode = new CreateImageCode(130, 38, 5, 10);
@@ -58,12 +59,21 @@ public class AccountController extends ABaseController {
     }
 
 
+    /**
+     * 根据邮箱发送验证码
+     *
+     * @param session HttpSession
+     * @param email 接收验证码的邮箱
+     * @param checkCode 图片验证码
+     * @param type 0：注册；1：找回密码；
+     * @return 返回统一响应类
+     */
     @RequestMapping("/sendEmailCode")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO<EmailCode> sendEmailCode(HttpSession session,
-                                               @VerifyParam(required = true) String email,
-                                               String checkCode,
-                                               Integer type) {
+                                               @VerifyParam(required = true, max = 150, regex = VerifyRegexEnum.EMAIL) String email,
+                                               @VerifyParam(required = true) String checkCode,
+                                               @VerifyParam(required = true) Integer type) {
         try {
             if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY_EMAIL))) {// 校验邮件验证码
                 throw new BusinessException("图片验证码错误");
