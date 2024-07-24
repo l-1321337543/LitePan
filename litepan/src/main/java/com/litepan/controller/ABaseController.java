@@ -3,7 +3,16 @@ package com.litepan.controller;
 import com.litepan.enums.ResponseCodeEnum;
 import com.litepan.entity.vo.ResponseVO;
 import com.litepan.exception.BusinessException;
+import com.litepan.utils.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+@Slf4j
 public class ABaseController {
     protected static final String STATUS_SUCCESS = "success";
     protected static final String STATUS_ERROR = "error";
@@ -37,5 +46,44 @@ public class ABaseController {
         vo.setInfo(ResponseCodeEnum.CODE_500.getMsg());
         vo.setData(t);
         return vo;
+    }
+
+    protected void readFile(HttpServletResponse response, String filePath) {
+        if (!StringUtils.pathIsOk(filePath)) {
+            return;
+        }
+        OutputStream out = null;
+        FileInputStream in = null;
+        try {
+            File file = new File(filePath);
+            if (!file.exists()) {
+                return;
+            }
+            in = new FileInputStream(file);
+            byte[] byteData = new byte[1024];
+            out = response.getOutputStream();
+            int len = 0;
+            while ((len = in.read(byteData)) != -1) {
+                out.write(byteData, 0, len);
+            }
+            out.flush();
+        } catch (Exception e) {
+            log.error("读取文件异常", e);
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    log.error("IO异常", e);
+                }
+            }
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    log.error("IO异常", e);
+                }
+            }
+        }
     }
 }

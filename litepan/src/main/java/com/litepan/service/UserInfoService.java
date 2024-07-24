@@ -115,5 +115,8 @@ public interface UserInfoService {
      */
     SessionWebUserDTO login(String email, String password);
 
-
+    /**
+     * 重置密码
+     */
+    void resetPwd(String email, String password, String emailCode);
 }

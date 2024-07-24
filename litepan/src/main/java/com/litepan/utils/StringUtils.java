@@ -37,7 +37,25 @@ public class StringUtils {
         return false;
     }
 
-    public static String encodeBuMd5(String originString){
+    /**
+     * 将传入的字符串进行MD5加密
+     *
+     * @return 加密后的字符串
+     */
+    public static String encodeBuMd5(String originString) {
         return isEmpty(originString) ? null : DigestUtils.md5Hex(originString);
+    }
+
+    /**
+     * 判断传入的文件路径字符串是否正确
+     */
+    public static boolean pathIsOk(String path) {
+        if (StringUtils.isEmpty(path)) {
+            return true;
+        }
+        if (path.contains("../") || path.contains("..\\")) {
+            return false;
+        }
+        return true;
     }
 }

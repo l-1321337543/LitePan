@@ -159,6 +159,24 @@ public class EmailCodeServiceImpl implements EmailCodeService {
             emailCode.setStatus(Constants.ZERO);
             emailCodeMapper.insert(emailCode);
         }
+        if (type == Constants.ONE) { //重置密码
+            UserInfo user = userInfoMapper.selectByEmail(email);
+            if (user == null) {
+                throw new BusinessException("账号不存在");
+            }
+            String code = StringUtils.getRandomNumber(Constants.LENGTH_5);
+
+            //发送验证码
+            sendEmailCode(email, code);
+
+            emailCodeMapper.disableEmailCode(email);//将已发送验证码置为无效
+            EmailCode emailCode = new EmailCode();
+            emailCode.setCode(code);
+            emailCode.setEmail(email);
+            emailCode.setCreateTime(new Date());
+            emailCode.setStatus(Constants.ZERO);
+            emailCodeMapper.insert(emailCode);
+        }
     }
 
     /**
@@ -178,6 +196,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
         }
         emailCodeMapper.disableEmailCode(email);
     }
+
 
     private void sendEmailCode(String toEmail, String code) {
         try {

@@ -17,6 +17,13 @@ public class AppConfig {
     @Value("${admin.emails}")
     private String adminEmails;
 
+    @Value("${project.folder}")
+    private String projectFolder;
+
+    public String getProjectFolder() {
+        return projectFolder;
+    }
+
     public String getAdminEmails() {
         return adminEmails;
     }
