@@ -65,7 +65,6 @@ public class GlobalOperationAspect {
             // 然而，它的缺点是性能较差，因为反射通常比直接访问方法要慢得多。
             // 此外，如果目标类有多个重载方法，你需要确保传递正确的参数类型数组来避免NoSuchMethodException。
             Object target = point.getTarget();
-            log.info("point.getTarget():{}", point.getTarget());
             String methodName = point.getSignature().getName();
             Class<?>[] parameterTypes = ((MethodSignature) point.getSignature()).getMethod().getParameterTypes();
             Method method = target.getClass().getMethod(methodName, parameterTypes);

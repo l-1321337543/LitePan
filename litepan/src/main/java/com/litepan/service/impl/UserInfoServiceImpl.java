@@ -252,7 +252,7 @@ public class UserInfoServiceImpl implements UserInfoService {
 
         // 用户空间
         UserSpaceDTO userSpaceDTO = new UserSpaceDTO();
-        //TODO
+        //TODO 查询文件表，获取空间具体使用
 //        userSpaceDTO.setUseSpace();
         userSpaceDTO.setTotalSpace(userInfo.getTotalSpace());
         redisComponent.saveUserSpaceUse(userInfo.getUserId(), userSpaceDTO);

@@ -38,4 +38,19 @@ public class RedisComponent {
     public void saveUserSpaceUse(String userId, UserSpaceDTO userSpaceDTO) {
         redisUtils.setEx(Constants.REDIS_KEY_USER_SPACE_USE + userId, userSpaceDTO, Constants.REDIS_EXPIRES_TIME_DAY);
     }
+
+    /**
+     * 从缓存中读取用户空间使用情况,读入不到就先写入
+     */
+    public UserSpaceDTO getUserSpaceUse(String userId) {
+        UserSpaceDTO userSpaceDTO = (UserSpaceDTO) redisUtils.get(Constants.REDIS_KEY_USER_SPACE_USE + userId);
+        if (userSpaceDTO == null) {
+            userSpaceDTO = new UserSpaceDTO();
+            //TODO 查询文件表，获取空间具体使用
+            userSpaceDTO.setUseSpace(0L);
+            userSpaceDTO.setTotalSpace(getSysSettingDTO().getUserInitUseSpace());
+            saveUserSpaceUse(userId,userSpaceDTO);
+        }
+        return userSpaceDTO;
+    }
 }

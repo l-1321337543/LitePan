@@ -6,16 +6,19 @@ import com.litepan.entity.config.AppConfig;
 import com.litepan.entity.constants.Constants;
 import com.litepan.entity.dto.CreateImageCode;
 import com.litepan.entity.dto.SessionWebUserDTO;
+import com.litepan.entity.dto.UserSpaceDTO;
+import com.litepan.entity.po.UserInfo;
 import com.litepan.enums.VerifyRegexEnum;
 import com.litepan.exception.BusinessException;
 import com.litepan.service.EmailCodeService;
 import com.litepan.service.UserInfoService;
 import com.litepan.entity.vo.ResponseVO;
+import com.litepan.utils.RedisComponent;
+import com.litepan.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -37,21 +40,22 @@ public class AccountController extends ABaseController {
     private static final String CONTENT_TYPE = "Content-Type";
 
     private static final String CONTENT_TYPE_VALUE = "application/json;charset=UTF-8";
+
     @Resource
     private UserInfoService userInfoService;
-
     @Resource
     private EmailCodeService emailCodeService;
-
     @Resource
     private AppConfig appConfig;
+    @Resource
+    private RedisComponent redisComponent;
 
     /**
      * 根据请求类型返回验证码并存入session
      *
      * @param type 0:登录注册的图片验证码  1:发送邮箱验证码的图片验证码  默认0
      */
-    @RequestMapping("/checkCode")
+    @GetMapping("/checkCode")
     public void checkCode(HttpServletResponse response, HttpSession session, Integer type)
             throws IOException {
         CreateImageCode vCode = new CreateImageCode(130, 38, 5, 10);
@@ -78,7 +82,7 @@ public class AccountController extends ABaseController {
      * @param type      0：注册；1：重置密码；
      * @return 返回统一响应类
      */
-    @RequestMapping("/sendEmailCode")
+    @PostMapping("/sendEmailCode")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO<Object> sendEmailCode(HttpSession session,
                                             @VerifyParam(required = true, max = 150, regex = VerifyRegexEnum.EMAIL) String email,
@@ -98,7 +102,7 @@ public class AccountController extends ABaseController {
     /**
      * 用户注册
      */
-    @RequestMapping("/register")
+    @PostMapping("/register")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO<Object> register(HttpSession session,
                                        @VerifyParam(required = true, max = 150, regex = VerifyRegexEnum.EMAIL) String email,
@@ -120,7 +124,7 @@ public class AccountController extends ABaseController {
     /**
      * 用户登录
      */
-    @RequestMapping("/login")
+    @PostMapping("/login")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO<SessionWebUserDTO> login(HttpSession session,
                                                @VerifyParam(required = true) String email,
@@ -130,9 +134,9 @@ public class AccountController extends ABaseController {
             if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY))) {// 校验邮件验证码
                 throw new BusinessException("图片验证码错误");
             }
-            SessionWebUserDTO sessionWebUserDto = userInfoService.login(email, password);
-            session.setAttribute(Constants.SESSION_KEY, sessionWebUserDto);
-            return getSuccessResponseVO(sessionWebUserDto);
+            SessionWebUserDTO sessionWebUserDTO = userInfoService.login(email, password);
+            session.setAttribute(Constants.SESSION_KEY, sessionWebUserDTO);
+            return getSuccessResponseVO(sessionWebUserDTO);
         } finally {
             session.removeAttribute(Constants.CHECK_CODE_KEY);
         }
@@ -162,7 +166,7 @@ public class AccountController extends ABaseController {
     /**
      * 获取用户头像，没有则提供默认头像
      */
-    @RequestMapping("getAvatar/{userId}")
+    @GetMapping("getAvatar/{userId}")
     public void getAvatar(HttpServletResponse response,
                           @VerifyParam(required = true) @PathVariable String userId) {
         //用户头像文件夹路径
@@ -199,5 +203,91 @@ public class AccountController extends ABaseController {
             log.error("输出无默认图失败", e);
         }
     }
+
+    /**
+     * 获取用户信息，从session中拿到登陆时存入的用户信息
+     */
+    @GetMapping("/getUserInfo")
+    @GlobalInterceptor
+    public ResponseVO<SessionWebUserDTO> getUserInfo(HttpSession session) {
+        return getSuccessResponseVO(getUserInfoFromSession(session));
+    }
+
+    /**
+     * 获取用户空间使用情况
+     */
+    @PostMapping("/getUseSpace")
+    @GlobalInterceptor
+    public ResponseVO<UserSpaceDTO> getUseSpace(HttpSession session) {
+        SessionWebUserDTO userInfoFromSession = getUserInfoFromSession(session);
+        UserSpaceDTO userSpaceUse = redisComponent.getUserSpaceUse(userInfoFromSession.getUserId());
+        return getSuccessResponseVO(userSpaceUse);
+    }
+
+    /**
+     * 退出登录
+     */
+    @PostMapping("/logout")
+    public ResponseVO<Object> logout(HttpSession session) {
+        session.invalidate();//立即结束当前会话,与该会话关联的所有数据（存储在会话属性中的数据）都将被清除
+        return getSuccessResponseVO(null);
+    }
+
+    /**
+     * 上传头像
+     *
+     * @param avatar 上传的文件
+     */
+    @PostMapping("/updateUserAvatar")
+    @GlobalInterceptor
+    public ResponseVO<Object> updateUserAvatar(HttpSession session, MultipartFile avatar) {
+        // 获取SessionWebUserInfoDTO
+        SessionWebUserDTO sessionWebUserDTO = getUserInfoFromSession(session);
+
+        // 创建存放头像的文件夹对象，若文件夹不存在，则创建
+        String avatarFolderPath = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE + Constants.FILE_FOLDER_AVATAR_NAME;
+        File folder = new File(avatarFolderPath);
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        // 创建存放头像文件对象，不存在则创建
+        String avatarFilePath = avatarFolderPath + sessionWebUserDTO.getUserId() + Constants.AVATAR_SUFFIX;
+        File file = new File(avatarFilePath);
+        try {
+//                file.createNewFile();
+            // 将前端传入的头像文件写入准备好的文件
+            avatar.transferTo(file);
+        } catch (Exception e) {
+            log.error("上传头像失败", e);
+            throw new BusinessException("上传头像失败");
+        }
+
+        // 删除数据库可能存在的qq头像
+        UserInfo userInfo = new UserInfo();
+        userInfo.setQqAvatar("");
+        userInfoService.updateUserInfoByUserId(userInfo, sessionWebUserDTO.getUserId());
+
+        // 删除session中可能存在的qq头像
+        sessionWebUserDTO.setAvatar(null);
+        session.setAttribute(Constants.SESSION_KEY, sessionWebUserDTO);
+        return getSuccessResponseVO(null);
+
+    }
+
+    /**
+     * 修改密码
+     */
+    @PostMapping("/updatePassword")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO<Object> updatePassword(HttpSession session,
+                                             @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD, min = 8, max = 18) String password) {
+        SessionWebUserDTO sessionWebUserDto = getUserInfoFromSession(session);
+        UserInfo userInfo = new UserInfo();
+        userInfo.setPassword(StringUtils.encodeBuMd5(password));
+        userInfoService.updateUserInfoByUserId(userInfo, sessionWebUserDto.getUserId());
+        return getSuccessResponseVO(null);
+    }
+
 
 }

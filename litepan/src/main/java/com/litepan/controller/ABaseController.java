@@ -1,5 +1,7 @@
 package com.litepan.controller;
 
+import com.litepan.entity.constants.Constants;
+import com.litepan.entity.dto.SessionWebUserDTO;
 import com.litepan.enums.ResponseCodeEnum;
 import com.litepan.entity.vo.ResponseVO;
 import com.litepan.exception.BusinessException;
@@ -7,6 +9,7 @@ import com.litepan.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -48,6 +51,9 @@ public class ABaseController {
         return vo;
     }
 
+    /**
+     * 读取传入的文件路径的文件中的内容，并响应到前端
+     */
     protected void readFile(HttpServletResponse response, String filePath) {
         if (!StringUtils.pathIsOk(filePath)) {
             return;
@@ -85,5 +91,12 @@ public class ABaseController {
                 }
             }
         }
+    }
+
+    /**
+     * 获取用户信息，从session中拿到登陆时存入的用户信息
+     */
+    protected SessionWebUserDTO getUserInfoFromSession(HttpSession session) {
+        return (SessionWebUserDTO) session.getAttribute(Constants.SESSION_KEY);
     }
 }
