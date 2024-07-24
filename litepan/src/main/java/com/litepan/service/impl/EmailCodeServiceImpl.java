@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.mail.internet.MimeMessage;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -158,6 +159,24 @@ public class EmailCodeServiceImpl implements EmailCodeService {
             emailCode.setStatus(Constants.ZERO);
             emailCodeMapper.insert(emailCode);
         }
+    }
+
+    /**
+     * 校验邮箱验证码
+     */
+    @Override
+    public void checkCode(String email, String code) {
+        EmailCode emailCode = emailCodeMapper.selectByEmailAndCode(email, code);
+        if (emailCode == null) {
+            throw new BusinessException("邮箱或验证码错误");
+        }
+        if (emailCode.getStatus() == Constants.ONE) {
+            throw new BusinessException("验证码已被使用");
+        }
+        if (Instant.now().toEpochMilli() - emailCode.getCreateTime().getTime() > Constants.LENGTH_15 * 60 * 1000) {
+            throw new BusinessException("验证码已超时");
+        }
+        emailCodeMapper.disableEmailCode(email);
     }
 
     private void sendEmailCode(String toEmail, String code) {

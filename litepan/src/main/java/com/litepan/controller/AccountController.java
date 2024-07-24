@@ -38,10 +38,9 @@ public class AccountController extends ABaseController {
     /**
      * 根据请求类型返回验证码并存入session
      *
-     * @param type 0:登录注册  1:邮箱验证码发送  默认0
+     * @param type 0:登录注册的图片验证码  1:发送邮箱验证码的图片验证码  默认0
      */
     @RequestMapping("/checkCode")
-    @GlobalInterceptor(checkParams = true)
     public void checkCode(HttpServletResponse response, HttpSession session, Integer type)
             throws IOException {
         CreateImageCode vCode = new CreateImageCode(130, 38, 5, 10);
@@ -51,9 +50,9 @@ public class AccountController extends ABaseController {
         response.setHeader("Cache-Control", "no-cache");
         String code = vCode.getCode();
         if (type == null || type == 0) {
-            session.setAttribute(Constants.CHECK_CODE_KEY, code);//type=0则表示普通验证码
+            session.setAttribute(Constants.CHECK_CODE_KEY, code);//type=0则表示登录注册的图片验证码
         } else {
-            session.setAttribute(Constants.CHECK_CODE_KEY_EMAIL, code);//type=1则表示发送邮件验证码
+            session.setAttribute(Constants.CHECK_CODE_KEY_EMAIL, code);//type=1则发送邮箱验证码的图片验证码
         }
         vCode.write(response.getOutputStream());
     }
@@ -62,10 +61,10 @@ public class AccountController extends ABaseController {
     /**
      * 根据邮箱发送验证码
      *
-     * @param session HttpSession
-     * @param email 接收验证码的邮箱
+     * @param session   HttpSession
+     * @param email     接收验证码的邮箱
      * @param checkCode 图片验证码
-     * @param type 0：注册；1：找回密码；
+     * @param type      0：注册；1：找回密码；
      * @return 返回统一响应类
      */
     @RequestMapping("/sendEmailCode")
@@ -82,6 +81,26 @@ public class AccountController extends ABaseController {
             return getSuccessResponseVO(null);
         } finally {
             session.removeAttribute(Constants.CHECK_CODE_KEY_EMAIL);
+        }
+    }
+
+    @RequestMapping("/register")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO register(HttpSession session,
+                               @VerifyParam(required = true, max = 150, regex = VerifyRegexEnum.EMAIL) String email,
+                               @VerifyParam(required = true) String emailCode,
+                               @VerifyParam(required = true) String nikeName,
+                               @VerifyParam(required = true, min = 8, max = 18, regex = VerifyRegexEnum.PASSWORD) String password,
+                               @VerifyParam(required = true) String checkCode,
+                               @VerifyParam(required = true) Integer type) {
+        try {
+            if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY))) {// 校验邮件验证码
+                throw new BusinessException("图片验证码错误");
+            }
+            userInfoService.register(email, nikeName, password, emailCode);
+            return getSuccessResponseVO(null);
+        } finally {
+            session.removeAttribute(Constants.CHECK_CODE_KEY);
         }
     }
 

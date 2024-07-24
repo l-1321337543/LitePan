@@ -1,5 +1,6 @@
 package com.litepan.utils;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 
 /**
@@ -34,5 +35,9 @@ public class StringUtils {
             return true;
         }
         return false;
+    }
+
+    public static String encodeBuMd5(String originString){
+        return isEmpty(originString) ? null : DigestUtils.md5Hex(originString);
     }
 }
