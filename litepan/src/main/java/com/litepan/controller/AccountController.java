@@ -4,7 +4,7 @@ import com.litepan.annotation.GlobalInterceptor;
 import com.litepan.annotation.VerifyParam;
 import com.litepan.entity.constants.Constants;
 import com.litepan.entity.dto.CreateImageCode;
-import com.litepan.entity.po.EmailCode;
+import com.litepan.entity.dto.SessionWebUserDTO;
 import com.litepan.enums.VerifyRegexEnum;
 import com.litepan.exception.BusinessException;
 import com.litepan.service.EmailCodeService;
@@ -69,10 +69,10 @@ public class AccountController extends ABaseController {
      */
     @RequestMapping("/sendEmailCode")
     @GlobalInterceptor(checkParams = true)
-    public ResponseVO<EmailCode> sendEmailCode(HttpSession session,
-                                               @VerifyParam(required = true, max = 150, regex = VerifyRegexEnum.EMAIL) String email,
-                                               @VerifyParam(required = true) String checkCode,
-                                               @VerifyParam(required = true) Integer type) {
+    public ResponseVO<Object> sendEmailCode(HttpSession session,
+                                            @VerifyParam(required = true, max = 150, regex = VerifyRegexEnum.EMAIL) String email,
+                                            @VerifyParam(required = true) String checkCode,
+                                            @VerifyParam(required = true) Integer type) {
         try {
             if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY_EMAIL))) {// 校验邮件验证码
                 throw new BusinessException("图片验证码错误");
@@ -84,21 +84,44 @@ public class AccountController extends ABaseController {
         }
     }
 
+    /**
+     * 用户注册
+     */
     @RequestMapping("/register")
     @GlobalInterceptor(checkParams = true)
-    public ResponseVO register(HttpSession session,
-                               @VerifyParam(required = true, max = 150, regex = VerifyRegexEnum.EMAIL) String email,
-                               @VerifyParam(required = true) String emailCode,
-                               @VerifyParam(required = true) String nikeName,
-                               @VerifyParam(required = true, min = 8, max = 18, regex = VerifyRegexEnum.PASSWORD) String password,
-                               @VerifyParam(required = true) String checkCode,
-                               @VerifyParam(required = true) Integer type) {
+    public ResponseVO<Object> register(HttpSession session,
+                                       @VerifyParam(required = true, max = 150, regex = VerifyRegexEnum.EMAIL) String email,
+                                       @VerifyParam(required = true) String emailCode,
+                                       @VerifyParam(required = true) String nickName,
+                                       @VerifyParam(required = true, min = 8, max = 18, regex = VerifyRegexEnum.PASSWORD) String password,
+                                       @VerifyParam(required = true) String checkCode) {
         try {
             if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY))) {// 校验邮件验证码
                 throw new BusinessException("图片验证码错误");
             }
-            userInfoService.register(email, nikeName, password, emailCode);
+            userInfoService.register(email, nickName, password, emailCode);
             return getSuccessResponseVO(null);
+        } finally {
+            session.removeAttribute(Constants.CHECK_CODE_KEY);
+        }
+    }
+
+    /**
+     * 用户登录
+     */
+    @RequestMapping("/login")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO<SessionWebUserDTO> login(HttpSession session,
+                                               @VerifyParam(required = true) String email,
+                                               @VerifyParam(required = true) String password,
+                                               String checkCode) {
+        try {
+            if (!checkCode.equalsIgnoreCase((String) session.getAttribute(Constants.CHECK_CODE_KEY))) {// 校验邮件验证码
+                throw new BusinessException("图片验证码错误");
+            }
+            SessionWebUserDTO sessionWebUserDto = userInfoService.login(email, password);
+            session.setAttribute(Constants.SESSION_KEY, sessionWebUserDto);
+            return getSuccessResponseVO(sessionWebUserDto);
         } finally {
             session.removeAttribute(Constants.CHECK_CODE_KEY);
         }

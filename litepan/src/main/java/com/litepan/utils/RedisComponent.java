@@ -1,7 +1,8 @@
 package com.litepan.utils;
 
 import com.litepan.entity.constants.Constants;
-import com.litepan.entity.dto.SysSettingDto;
+import com.litepan.entity.dto.SysSettingDTO;
+import com.litepan.entity.dto.UserSpaceDTO;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -9,7 +10,7 @@ import javax.annotation.Resource;
 /**
  * @author 李臣洋
  * @version 1.0
- * @description: TODO
+ * @description: 缓存读取和写入
  * @date 2024/7/19 10:12
  */
 @Component
@@ -20,14 +21,21 @@ public class RedisComponent {
     /**
      * 从缓存获取邮件内容，获取不到就将邮件的内容存入redis
      *
-     * @return 邮件内容
+     * @return 系统设置DTO
      */
-    public SysSettingDto getSysSettingDto() {
-        SysSettingDto sysSettingDto = (SysSettingDto) redisUtils.get(Constants.REDIS_KEY_SYS_SETTING);
-        if (sysSettingDto == null) {
-            sysSettingDto = new SysSettingDto();
-            redisUtils.set(Constants.REDIS_KEY_SYS_SETTING, sysSettingDto);
+    public SysSettingDTO getSysSettingDTO() {
+        SysSettingDTO sysSettingDTO = (SysSettingDTO) redisUtils.get(Constants.REDIS_KEY_SYS_SETTING);
+        if (sysSettingDTO == null) {
+            sysSettingDTO = new SysSettingDTO();
+            redisUtils.set(Constants.REDIS_KEY_SYS_SETTING, sysSettingDTO);
         }
-        return sysSettingDto;
+        return sysSettingDTO;
+    }
+
+    /**
+     * 向缓存中存入用户空间使用情况,并设置有效期
+     */
+    public void saveUserSpaceUse(String userId, UserSpaceDTO userSpaceDTO) {
+        redisUtils.setEx(Constants.REDIS_KEY_USER_SPACE_USE + userId, userSpaceDTO, Constants.REDIS_EXPIRES_TIME_DAY);
     }
 }

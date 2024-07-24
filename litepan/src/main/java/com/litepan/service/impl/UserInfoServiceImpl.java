@@ -1,7 +1,10 @@
 package com.litepan.service.impl;
 
+import com.litepan.entity.config.AppConfig;
 import com.litepan.entity.constants.Constants;
-import com.litepan.entity.dto.SysSettingDto;
+import com.litepan.entity.dto.SessionWebUserDTO;
+import com.litepan.entity.dto.SysSettingDTO;
+import com.litepan.entity.dto.UserSpaceDTO;
 import com.litepan.enums.UserStatusEnum;
 import com.litepan.exception.BusinessException;
 import com.litepan.service.EmailCodeService;
@@ -10,11 +13,13 @@ import com.litepan.entity.po.UserInfo;
 import com.litepan.entity.query.UserInfoQuery;
 import com.litepan.utils.RedisComponent;
 import com.litepan.utils.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import com.litepan.entity.vo.PaginationResultVO;
 import com.litepan.mappers.UserInfoMapper;
@@ -38,6 +43,9 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Resource
     private RedisComponent redisComponent;
+
+    @Resource
+    private AppConfig appConfig;
 
     /**
      * 根据条件查询列表
@@ -198,26 +206,57 @@ public class UserInfoServiceImpl implements UserInfoService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void register(String email, String nikeName, String password, String emailCode) {
+    public void register(String email, String nickName, String password, String emailCode) {
         if (userInfoMapper.selectByEmail(email) != null) {
             throw new BusinessException("邮箱已存在");
         }
-        if (userInfoMapper.selectByNickName(nikeName) != null) {
+        if (userInfoMapper.selectByNickName(nickName) != null) {
             throw new BusinessException("昵称已存在");
         }
         emailCodeService.checkCode(email, emailCode);
 
-        SysSettingDto sysSettingDto = redisComponent.getSysSettingDto();
+        SysSettingDTO sysSettingDTO = redisComponent.getSysSettingDTO();
 
         UserInfo userInfo = new UserInfo();
         userInfo.setUserId(StringUtils.getRandomNumber(Constants.LENGTH_10));
         userInfo.setEmail(email);
-        userInfo.setNickName(nikeName);
+        userInfo.setNickName(nickName);
         userInfo.setPassword(StringUtils.encodeBuMd5(password));
         userInfo.setStatus(UserStatusEnum.ENABLE.getStatus());
         userInfo.setJoinTime(new Date());
         userInfo.setUseSpace(0L);
-        userInfo.setTotalSpace(sysSettingDto.getUserInitUseSpace() * Constants.MB);
+        userInfo.setTotalSpace(sysSettingDTO.getUserInitUseSpace() * Constants.MB);
         userInfoMapper.insert(userInfo);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public SessionWebUserDTO login(String email, String password) {
+        UserInfo userInfo = userInfoMapper.selectByEmail(email);
+        if (userInfo == null || !password.equals(userInfo.getPassword())) {
+//        if (userInfo == null || !Objects.equals(StringUtils.encodeBuMd5(password), userInfo.getPassword())) {
+            throw new BusinessException("邮箱或密码错误！");
+        }
+
+        if (userInfo.getStatus().equals(UserStatusEnum.DISABLE.getStatus())) {
+            throw new BusinessException("该账户已被封禁");
+        }
+        UserInfo update = new UserInfo();
+        update.setLastLoginTime(new Date());
+        userInfoMapper.updateByEmail(update, email);
+
+        SessionWebUserDTO sessionWebUserDto = new SessionWebUserDTO();
+        sessionWebUserDto.setUserId(userInfo.getUserId());
+        sessionWebUserDto.setNickName(userInfo.getNickName());
+        sessionWebUserDto.setAdmin(ArrayUtils.contains(appConfig.getAdminEmails().split(","), email));
+
+        // 用户空间
+        UserSpaceDTO userSpaceDTO = new UserSpaceDTO();
+        //TODO
+//        userSpaceDTO.setUseSpace();
+        userSpaceDTO.setTotalSpace(userInfo.getTotalSpace());
+        redisComponent.saveUserSpaceUse(userInfo.getUserId(), userSpaceDTO);
+
+        return sessionWebUserDto;
     }
 }

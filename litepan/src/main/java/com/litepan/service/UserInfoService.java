@@ -1,5 +1,6 @@
 package com.litepan.service;
 
+import com.litepan.entity.dto.SessionWebUserDTO;
 import com.litepan.entity.po.UserInfo;
 import com.litepan.entity.query.UserInfoQuery;
 
@@ -107,6 +108,12 @@ public interface UserInfoService {
     /**
      * 用户注册
      */
-    void register(String email, String nikeName, String password, String emailCode);
+    void register(String email, String nickName, String password, String emailCode);
+
+    /**
+     * 用户登录
+     */
+    SessionWebUserDTO login(String email, String password);
+
 
 }

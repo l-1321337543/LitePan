@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * @date 2024/7/19 10:15
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SysSettingDto {
+public class SysSettingDTO {
 
     /**
      * 注册发送邮件标题

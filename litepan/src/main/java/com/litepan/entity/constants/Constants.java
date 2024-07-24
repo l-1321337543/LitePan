@@ -14,9 +14,13 @@ public class Constants {
     public static final int LENGTH_10 = 10;
     public static final int LENGTH_15 = 15;
     public static final long MB = 1024 * 1024;
+    public static final int REDIS_EXPIRES_TIME_ONE_MIN = 60;
+    public static final int REDIS_EXPIRES_TIME_DAY = REDIS_EXPIRES_TIME_ONE_MIN * 60 * 24;
 
+    public static final String SESSION_KEY = "session_key";
     public static final String CHECK_CODE_KEY = "check_code_key";
     public static final String CHECK_CODE_KEY_EMAIL = "check_code_key_email";
 
     public static final String REDIS_KEY_SYS_SETTING = "litepan:syssetting";
+    public static final String REDIS_KEY_USER_SPACE_USE = "litepan:user:spaceuse:";
 }

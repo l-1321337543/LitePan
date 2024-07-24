@@ -3,7 +3,7 @@ package com.litepan.service.impl;
 import com.litepan.utils.RedisComponent;
 import com.litepan.entity.config.AppConfig;
 import com.litepan.entity.constants.Constants;
-import com.litepan.entity.dto.SysSettingDto;
+import com.litepan.entity.dto.SysSettingDTO;
 import com.litepan.entity.po.UserInfo;
 import com.litepan.entity.query.UserInfoQuery;
 import com.litepan.exception.BusinessException;
@@ -185,9 +185,9 @@ public class EmailCodeServiceImpl implements EmailCodeService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setTo(toEmail);
             helper.setFrom(appConfig.getFromEmail());
-            SysSettingDto sysSettingDto = redisComponent.getSysSettingDto();
-            helper.setSubject(sysSettingDto.getRegisterEmailTitle());
-            helper.setText(String.format(sysSettingDto.getRegisterEmailContent(), code));
+            SysSettingDTO sysSettingDTO = redisComponent.getSysSettingDTO();
+            helper.setSubject(sysSettingDTO.getRegisterEmailTitle());
+            helper.setText(String.format(sysSettingDTO.getRegisterEmailContent(), code));
             helper.setSentDate(new Date());
             javaMailSender.send(message);
         } catch (Exception e) {
