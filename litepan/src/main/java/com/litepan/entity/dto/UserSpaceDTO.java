@@ -1,5 +1,7 @@
 package com.litepan.entity.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.io.Serializable;
 
 /**
@@ -8,6 +10,7 @@ import java.io.Serializable;
  * @description: 用户空间DTO
  * @date 2024/7/24 15:24
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserSpaceDTO implements Serializable {
     private long useSpace;
     private long totalSpace;

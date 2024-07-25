@@ -2,11 +2,14 @@ package com.litepan.aspect;
 
 import com.litepan.annotation.GlobalInterceptor;
 import com.litepan.annotation.VerifyParam;
+import com.litepan.entity.constants.Constants;
+import com.litepan.entity.dto.SessionWebUserDTO;
 import com.litepan.enums.ResponseCodeEnum;
 import com.litepan.exception.BusinessException;
 import com.litepan.utils.StringUtils;
 import com.litepan.utils.VerifyUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.connector.Request;
 import org.apache.commons.lang3.ArrayUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -14,9 +17,14 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Objects;
 
 /**
  * @author 李臣洋
@@ -70,7 +78,12 @@ public class GlobalOperationAspect {
             Method method = target.getClass().getMethod(methodName, parameterTypes);
             GlobalInterceptor globalInterceptor = method.getAnnotation(GlobalInterceptor.class);
 
-            //是否校验参数
+            //校验登录
+            if (globalInterceptor.checkLogin() || globalInterceptor.checkAdmin()) {
+                validateLogin(globalInterceptor.checkAdmin());
+            }
+
+            //校验参数
             if (globalInterceptor.checkParams()) {
                 validateParam(method, args);
             }
@@ -85,6 +98,27 @@ public class GlobalOperationAspect {
 
 
     }
+
+    /**
+     * 校验登录以及校验管理员
+     *
+     * @param checkAdmin 是否校验管理员
+     */
+    private void validateLogin(boolean checkAdmin) {
+        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+        HttpSession session = request.getSession();
+        SessionWebUserDTO sessionWebUserDTO = (SessionWebUserDTO) session.getAttribute(Constants.SESSION_KEY);
+
+        // session中拿不到数据，则表示未登录
+        if (sessionWebUserDTO == null) {
+            throw new BusinessException(ResponseCodeEnum.CODE_901);
+        }
+        // 如果需要校验管理员，但是登陆的账户并不是管理员账户，则为非法访问
+        if (checkAdmin && !sessionWebUserDTO.isAdmin()) {
+            throw new BusinessException(ResponseCodeEnum.CODE_404);
+        }
+    }
+
 
     /**
      * 对传入方法的参数进行校验

@@ -83,7 +83,7 @@ public class AccountController extends ABaseController {
      * @return 返回统一响应类
      */
     @PostMapping("/sendEmailCode")
-    @GlobalInterceptor(checkParams = true)
+    @GlobalInterceptor(checkParams = true, checkLogin = false)
     public ResponseVO<Object> sendEmailCode(HttpSession session,
                                             @VerifyParam(required = true, max = 150, regex = VerifyRegexEnum.EMAIL) String email,
                                             @VerifyParam(required = true) String checkCode,
@@ -103,7 +103,7 @@ public class AccountController extends ABaseController {
      * 用户注册
      */
     @PostMapping("/register")
-    @GlobalInterceptor(checkParams = true)
+    @GlobalInterceptor(checkParams = true, checkLogin = false)
     public ResponseVO<Object> register(HttpSession session,
                                        @VerifyParam(required = true, max = 150, regex = VerifyRegexEnum.EMAIL) String email,
                                        @VerifyParam(required = true) String emailCode,
@@ -125,7 +125,7 @@ public class AccountController extends ABaseController {
      * 用户登录
      */
     @PostMapping("/login")
-    @GlobalInterceptor(checkParams = true)
+    @GlobalInterceptor(checkParams = true, checkLogin = false)
     public ResponseVO<SessionWebUserDTO> login(HttpSession session,
                                                @VerifyParam(required = true) String email,
                                                @VerifyParam(required = true) String password,
@@ -236,7 +236,7 @@ public class AccountController extends ABaseController {
     /**
      * 上传头像
      *
-     * @param avatar 上传的文件
+     * @param avatar 上传的头像文件
      */
     @PostMapping("/updateUserAvatar")
     @GlobalInterceptor

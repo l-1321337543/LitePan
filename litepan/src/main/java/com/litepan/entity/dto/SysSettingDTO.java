@@ -2,6 +2,8 @@ package com.litepan.entity.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.io.Serializable;
+
 /**
  * @author 李臣洋
  * @version 1.0
@@ -9,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * @date 2024/7/19 10:15
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SysSettingDTO {
+public class SysSettingDTO implements Serializable {
 
     /**
      * 注册发送邮件标题
