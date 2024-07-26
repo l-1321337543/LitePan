@@ -6,12 +6,16 @@ import java.util.Date;
 import com.litepan.enums.DateTimePattenEnum;
 import com.litepan.utils.DateUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
+import lombok.experimental.Accessors;
 import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * @Description: 文件信息表
  * @date: 2024/07/26
  */
+@Data
+@Accessors(chain = true)
 public class FileInfo implements Serializable {
 
     /**
@@ -100,133 +104,6 @@ public class FileInfo implements Serializable {
      */
     private Integer delFlag;
 
-    public void setFileId(String fileId) {
-        this.fileId = fileId;
-    }
-
-    public String getFileId() {
-        return fileId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setFileMd5(String fileMd5) {
-        this.fileMd5 = fileMd5;
-    }
-
-    public String getFileMd5() {
-        return fileMd5;
-    }
-
-    public void setFilePid(String filePid) {
-        this.filePid = filePid;
-    }
-
-    public String getFilePid() {
-        return filePid;
-    }
-
-    public void setFileSize(Long fileSize) {
-        this.fileSize = fileSize;
-    }
-
-    public Long getFileSize() {
-        return fileSize;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileCover(String fileCover) {
-        this.fileCover = fileCover;
-    }
-
-    public String getFileCover() {
-        return fileCover;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setLastUpdateTime(Date lastUpdateTime) {
-        this.lastUpdateTime = lastUpdateTime;
-    }
-
-    public Date getLastUpdateTime() {
-        return lastUpdateTime;
-    }
-
-    public void setFolderType(Integer folderType) {
-        this.folderType = folderType;
-    }
-
-    public Integer getFolderType() {
-        return folderType;
-    }
-
-    public void setFileCategory(Integer fileCategory) {
-        this.fileCategory = fileCategory;
-    }
-
-    public Integer getFileCategory() {
-        return fileCategory;
-    }
-
-    public void setFileType(Integer fileType) {
-        this.fileType = fileType;
-    }
-
-    public Integer getFileType() {
-        return fileType;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setRecoverTime(Date recoverTime) {
-        this.recoverTime = recoverTime;
-    }
-
-    public Date getRecoverTime() {
-        return recoverTime;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
 
     @Override
     public String toString() {

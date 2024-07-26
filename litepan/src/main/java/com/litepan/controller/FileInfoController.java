@@ -1,15 +1,23 @@
 package com.litepan.controller;
 
+import com.litepan.annotation.GlobalInterceptor;
+import com.litepan.annotation.VerifyParam;
+import com.litepan.entity.dto.SessionWebUserDTO;
+import com.litepan.entity.dto.UploadResultDTO;
+import com.litepan.entity.vo.FileInfoVO;
 import com.litepan.entity.vo.PaginationResultVO;
+import com.litepan.enums.FileCategoryEnums;
+import com.litepan.enums.FileDelFlagEnums;
+import com.litepan.enums.FileStatusEnums;
 import com.litepan.service.FileInfoService;
 import com.litepan.entity.query.FileInfoQuery;
 import com.litepan.entity.vo.ResponseVO;
 import com.litepan.entity.po.FileInfo;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 
@@ -27,10 +35,52 @@ public class FileInfoController extends ABaseController {
     /**
      * 根据条件分页查询
      */
-    @RequestMapping("loadDataList")
-    public ResponseVO<PaginationResultVO<FileInfo>> loadDataList(FileInfoQuery query) {
-        return getSuccessResponseVO(fileInfoService.findListByPage(query));
+    @PostMapping("loadDataList")
+    @GlobalInterceptor
+    public ResponseVO<PaginationResultVO<FileInfoVO>> loadDataList(HttpSession session, FileInfoQuery query, String category) {
+        // 通过枚举判断传入的category属于哪种类型
+        FileCategoryEnums categoryEnums = FileCategoryEnums.getByCode(category);
+        if (categoryEnums != null) {
+            query.setFileCategory(categoryEnums.getCategory());
+        }
+
+        query.setUserId(getUserInfoFromSession(session).getUserId());
+        query.setOrderBy("last_update_time desc");
+        query.setDelFlag(FileDelFlagEnums.NORMAL.getFlag());
+
+        // 获取封装好的分页结果
+        PaginationResultVO<FileInfo> result = fileInfoService.findListByPage(query);
+
+        // 返回转换类型后的分页结果
+        return getSuccessResponseVO(convert2PaginationVO(result, FileInfoVO.class));
     }
 
+    /**
+     * 上传文件，前端将文件分块后，一块一块上传
+     *
+     * @param fileId        非必传，文件的第一块没有fileId
+     * @param file          上传的文件本身
+     * @param fileName      文件名
+     * @param filePid       父级Id
+     * @param fileMD5       文件MD5值
+     * @param chunkIndex    分块索引
+     * @param chunks
+     * @return
+     */
+    @PostMapping("/uploadFile")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO<UploadResultDTO> uploadFile(HttpSession session,
+                                                  String fileId,
+                                                  MultipartFile file,
+                                                  @VerifyParam(required = true) String fileName,
+                                                  @VerifyParam(required = true) String filePid,
+                                                  @VerifyParam(required = true) String fileMD5,
+                                                  @VerifyParam(required = true) Integer chunkIndex,
+                                                  @VerifyParam(required = true) Integer chunks) {
+        SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
+        UploadResultDTO uploadResultDTO = fileInfoService.uploadFile(webUserDTO, fileId, file,
+                fileName, filePid, fileMD5, chunkIndex, chunks);
+        return getSuccessResponseVO(uploadResultDTO);
+    }
 
 }

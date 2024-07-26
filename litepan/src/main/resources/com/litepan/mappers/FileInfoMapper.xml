@@ -457,7 +457,14 @@
 		where file_id = #{fileId} and user_id = #{userId}
 	</select>
 
-	<!--根据fileIdAndUserId更新-->
+	<!--根据userId获取用户已使用空间大小-->
+    <select id="selectUseSpace" resultType="java.lang.Long">
+        select ifnull(sum(file_size), 0) userSpace
+        from file_info
+        where user_id = #{userId}
+    </select>
+
+    <!--根据fileIdAndUserId更新-->
 	<update id="updateByFileIdAndUserId" parameterType="com.litepan.entity.po.FileInfo">
 		update file_info
 		<set>

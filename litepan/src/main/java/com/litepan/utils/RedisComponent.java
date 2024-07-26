@@ -3,6 +3,9 @@ package com.litepan.utils;
 import com.litepan.entity.constants.Constants;
 import com.litepan.entity.dto.SysSettingDTO;
 import com.litepan.entity.dto.UserSpaceDTO;
+import com.litepan.entity.po.FileInfo;
+import com.litepan.entity.query.FileInfoQuery;
+import com.litepan.mappers.FileInfoMapper;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -17,6 +20,9 @@ import javax.annotation.Resource;
 public class RedisComponent {
     @Resource
     private RedisUtils<Object> redisUtils;
+
+    @Resource
+    private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
 
     /**
      * 从缓存获取邮件内容，获取不到就将邮件的内容存入redis
@@ -46,8 +52,8 @@ public class RedisComponent {
         UserSpaceDTO userSpaceDTO = (UserSpaceDTO) redisUtils.get(Constants.REDIS_KEY_USER_SPACE_USE + userId);
         if (userSpaceDTO == null) {
             userSpaceDTO = new UserSpaceDTO();
-            //TODO 查询文件表，获取空间具体使用
-            userSpaceDTO.setUseSpace(0L);
+            Long useSpace = fileInfoMapper.selectUseSpace(userId);
+            userSpaceDTO.setUseSpace(useSpace);
             userSpaceDTO.setTotalSpace(getSysSettingDTO().getUserInitUseSpace());
             saveUserSpaceUse(userId,userSpaceDTO);
         }

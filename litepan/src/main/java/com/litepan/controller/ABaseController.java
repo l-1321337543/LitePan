@@ -2,9 +2,11 @@ package com.litepan.controller;
 
 import com.litepan.entity.constants.Constants;
 import com.litepan.entity.dto.SessionWebUserDTO;
+import com.litepan.entity.vo.PaginationResultVO;
 import com.litepan.enums.ResponseCodeEnum;
 import com.litepan.entity.vo.ResponseVO;
 import com.litepan.exception.BusinessException;
+import com.litepan.utils.CopyUtils;
 import com.litepan.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -91,6 +93,25 @@ public class ABaseController {
                 }
             }
         }
+    }
+
+    /**
+     * 将PaginationResultVO<S>中的类型S转换为类型T
+     *
+     * @param result 原始PaginationResultVO
+     * @param clazz  目标PaginationResultVO中的类型
+     * @param <S>    源类型
+     * @param <T>    目标类型
+     * @return 转换后的PaginationResultVO<T>
+     */
+    protected <S, T> PaginationResultVO<T> convert2PaginationVO(PaginationResultVO<S> result, Class<T> clazz) {
+        PaginationResultVO<T> resultVO = new PaginationResultVO<>();
+        resultVO.setList(CopyUtils.copyList(result.getList(), clazz));
+        resultVO.setPageNo(result.getPageNo());
+        resultVO.setPageSize(result.getPageSize());
+        resultVO.setPageTotal(result.getPageTotal());
+        resultVO.setTotalCount(result.getTotalCount());
+        return resultVO;
     }
 
     /**

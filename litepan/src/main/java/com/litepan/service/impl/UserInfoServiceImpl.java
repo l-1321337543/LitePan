@@ -5,8 +5,11 @@ import com.litepan.entity.constants.Constants;
 import com.litepan.entity.dto.SessionWebUserDTO;
 import com.litepan.entity.dto.SysSettingDTO;
 import com.litepan.entity.dto.UserSpaceDTO;
+import com.litepan.entity.po.FileInfo;
+import com.litepan.entity.query.FileInfoQuery;
 import com.litepan.enums.UserStatusEnum;
 import com.litepan.exception.BusinessException;
+import com.litepan.mappers.FileInfoMapper;
 import com.litepan.service.EmailCodeService;
 import com.litepan.service.UserInfoService;
 import com.litepan.entity.po.UserInfo;
@@ -37,6 +40,9 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Resource
     private UserInfoMapper<UserInfo, UserInfoQuery> userInfoMapper;
+
+    @Resource
+    private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
 
     @Resource
     private EmailCodeService emailCodeService;
@@ -252,8 +258,8 @@ public class UserInfoServiceImpl implements UserInfoService {
 
         // 用户空间
         UserSpaceDTO userSpaceDTO = new UserSpaceDTO();
-        //TODO 查询文件表，获取空间具体使用
-//        userSpaceDTO.setUseSpace();
+        Long useSpace = fileInfoMapper.selectUseSpace(userInfo.getUserId());
+        userSpaceDTO.setUseSpace(useSpace);
         userSpaceDTO.setTotalSpace(userInfo.getTotalSpace());
         redisComponent.saveUserSpaceUse(userInfo.getUserId(), userSpaceDTO);
 

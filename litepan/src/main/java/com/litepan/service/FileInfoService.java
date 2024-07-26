@@ -1,11 +1,14 @@
 package com.litepan.service;
 
+import com.litepan.entity.dto.SessionWebUserDTO;
+import com.litepan.entity.dto.UploadResultDTO;
 import com.litepan.entity.po.FileInfo;
 import com.litepan.entity.query.FileInfoQuery;
 
 import java.util.List;
 
 import com.litepan.entity.vo.PaginationResultVO;
+import org.springframework.web.multipart.MultipartFile;
 
 
 /**
@@ -59,4 +62,6 @@ public interface FileInfoService {
      */
     Integer deleteFileInfoByFileIdAndUserId(String fileId, String userId);
 
+    UploadResultDTO uploadFile(SessionWebUserDTO webUserDTO, String fileId, MultipartFile file,
+                               String fileName, String filePid, String fileMD5, Integer chunkIndex, Integer chunks);
 }

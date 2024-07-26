@@ -276,7 +276,8 @@ public class AccountController extends ABaseController {
     }
 
     /**
-     * 修改密码
+     * 登陆后修改密码
+     * TODO 前端没有校验两次输入密码是否一致就传给后端
      */
     @PostMapping("/updatePassword")
     @GlobalInterceptor(checkParams = true)
@@ -288,6 +289,8 @@ public class AccountController extends ABaseController {
         userInfoService.updateUserInfoByUserId(userInfo, sessionWebUserDto.getUserId());
         return getSuccessResponseVO(null);
     }
+
+
 
 
 }

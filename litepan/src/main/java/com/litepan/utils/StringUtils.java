@@ -1,5 +1,6 @@
 package com.litepan.utils;
 
+import com.litepan.entity.constants.Constants;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -58,4 +59,40 @@ public class StringUtils {
         }
         return true;
     }
+
+    /**
+     * 给传入的文件名添加五位随机数后缀
+     */
+    public static String rename(String fileName) {
+        // 获取不加后缀的文件名
+        String fileNameReal = getFileNameNoSuffix(fileName);
+        // 获取文件的后缀名
+        String suffix = getFileSuffix(fileName);
+        return fileNameReal + "_" + getRandomNumber(Constants.LENGTH_5) + suffix;
+    }
+
+    /**
+     * 截取传入文件名的后缀并返回
+     */
+    public static String getFileSuffix(String fileName) {
+        int index = fileName.lastIndexOf(".");
+        if (index == -1) {
+            return "";
+        }
+        return fileName.substring(index);
+    }
+
+    /**
+     * 截取传入文件名的非后缀部分并返回
+     */
+    public static String getFileNameNoSuffix(String fileName) {
+        int index = fileName.lastIndexOf(".");
+        if (index == -1) {
+            return fileName;
+        }
+        fileName = fileName.substring(0, index);
+        return fileName;
+    }
+
+
 }

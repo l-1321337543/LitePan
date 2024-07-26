@@ -19,7 +19,7 @@ public class SimplePage {
         }
         this.pageNo = pageNo;
         this.countTotal = countTotal;
-        this.pageNo = pageSize;
+        this.pageSize = pageSize;
         action();
     }
 
@@ -47,6 +47,7 @@ public class SimplePage {
         }
         this.start = (pageNo - 1) * pageSize;
         this.end = this.pageSize;
+//        this.end = Math.min(this.start + this.pageSize - 1, this.countTotal - 1);
     }
 
     public int getPageNo() {
