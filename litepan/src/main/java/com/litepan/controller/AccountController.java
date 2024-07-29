@@ -14,7 +14,7 @@ import com.litepan.service.EmailCodeService;
 import com.litepan.service.UserInfoService;
 import com.litepan.entity.vo.ResponseVO;
 import com.litepan.utils.RedisComponent;
-import com.litepan.utils.StringUtils;
+import com.litepan.utils.StringTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -285,7 +285,7 @@ public class AccountController extends ABaseController {
                                              @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD, min = 8, max = 18) String password) {
         SessionWebUserDTO sessionWebUserDto = getUserInfoFromSession(session);
         UserInfo userInfo = new UserInfo();
-        userInfo.setPassword(StringUtils.encodeBuMd5(password));
+        userInfo.setPassword(StringTools.encodeBuMd5(password));
         userInfoService.updateUserInfoByUserId(userInfo, sessionWebUserDto.getUserId());
         return getSuccessResponseVO(null);
     }

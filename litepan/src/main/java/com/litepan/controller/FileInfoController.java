@@ -35,7 +35,7 @@ public class FileInfoController extends CommentFileController {
     private FileInfoService fileInfoService;
 
     /**
-     * 根据条件分页查询
+     * 加载文件列表
      */
     @PostMapping("loadDataList")
     @GlobalInterceptor
@@ -86,12 +86,13 @@ public class FileInfoController extends CommentFileController {
     }
 
     /**
-     * 响应图片
+     * 响应缩略图
      *
      * @param imageFolder 图片文件夹
      * @param imageName   图片名
      */
     @GetMapping("/getImage/{imageFolder}/{imageName}")
+    @GlobalInterceptor
     public void getImage(HttpServletResponse response,
                          @PathVariable("imageFolder") String imageFolder,
                          @PathVariable("imageName") String imageName) {
@@ -104,6 +105,7 @@ public class FileInfoController extends CommentFileController {
      * @param fileId 要播放的文件Id
      */
     @GetMapping("/ts/getVideoInfo/{fileId}")
+    @GlobalInterceptor
     public void getVideoInfo(HttpServletResponse response,
                              HttpSession session,
                              @PathVariable("fileId") String fileId) {
@@ -111,12 +113,51 @@ public class FileInfoController extends CommentFileController {
         super.getFile(response, fileId, webUserDTO.getUserId());
     }
 
+    /**
+     * 预览除视频以外其他文件
+     *
+     * @param fileId 文件Id
+     */
     @RequestMapping("/getFile/{fileId}")
+    @GlobalInterceptor
     public void getFile(HttpServletResponse response,
-                             HttpSession session,
-                             @PathVariable("fileId") String fileId) {
+                        HttpSession session,
+                        @PathVariable("fileId") String fileId) {
         SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
         super.getFile(response, fileId, webUserDTO.getUserId());
     }
+
+    /**
+     * 新建文件夹
+     *
+     * @param fileName 文件夹名称
+     * @param filePid  文件Pid
+     * @return 新建好的FileInfo
+     */
+    @PostMapping("/newFoloder")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO<FileInfo> newFolder(HttpSession session,
+                                          @VerifyParam(required = true) String fileName,
+                                          @VerifyParam(required = true) String filePid) {
+        SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
+        FileInfo fileInfo = fileInfoService.newFolder(webUserDTO.getUserId(), fileName, filePid);
+        return getSuccessResponseVO(fileInfo);
+    }
+
+    /**
+     * 不是获取获取目录下的文件，而是获取该文件夹的层级目录关系
+     *
+     * @param path 该文件夹以及父级文件的fileId，以"/"拼接 <br>
+     *             例如：path=P63epeXZzC/7mOpybEXR0/gHTP3Lb7yK
+     * @return 该文件夹及其所有父级目录的列表
+     */
+    @PostMapping("/getFolderInfo")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO<List<FileInfo>> getFolderInfo(HttpSession session,
+                                                    @VerifyParam(required = true) String path) {
+        SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
+        return super.getFolderInfo(path, webUserDTO.getUserId());
+    }
+
 
 }

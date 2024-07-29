@@ -1,6 +1,5 @@
 package com.litepan.controller;
 
-import com.litepan.entity.config.AppConfig;
 import com.litepan.entity.constants.Constants;
 import com.litepan.entity.dto.SessionWebUserDTO;
 import com.litepan.entity.vo.PaginationResultVO;
@@ -8,12 +7,9 @@ import com.litepan.enums.ResponseCodeEnum;
 import com.litepan.entity.vo.ResponseVO;
 import com.litepan.exception.BusinessException;
 import com.litepan.utils.CopyUtils;
-import com.litepan.utils.StringUtils;
+import com.litepan.utils.StringTools;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PathVariable;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -62,7 +58,7 @@ public class ABaseController {
      * 读取传入的文件路径的文件中的内容，并响应到前端
      */
     protected void readFile(HttpServletResponse response, String filePath) {
-        if (!StringUtils.pathIsOk(filePath)) {
+        if (!StringTools.pathIsOk(filePath)) {
             return;
         }
         OutputStream out = null;

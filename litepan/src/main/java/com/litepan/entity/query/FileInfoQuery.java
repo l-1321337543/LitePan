@@ -129,6 +129,18 @@ public class FileInfoQuery extends BaseQuery {
      */
     private Integer delFlag;
 
+    /**
+     * 文件Id数组
+     */
+    private String[] fileIdArray;
+
+    public String[] getFileIdArray() {
+        return fileIdArray;
+    }
+
+    public void setFileIdArray(String[] fileIdArray) {
+        this.fileIdArray = fileIdArray;
+    }
 
     public void setFileId(String fileId) {
         this.fileId = fileId;

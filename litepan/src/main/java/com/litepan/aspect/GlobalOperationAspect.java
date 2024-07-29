@@ -6,10 +6,9 @@ import com.litepan.entity.constants.Constants;
 import com.litepan.entity.dto.SessionWebUserDTO;
 import com.litepan.enums.ResponseCodeEnum;
 import com.litepan.exception.BusinessException;
-import com.litepan.utils.StringUtils;
+import com.litepan.utils.StringTools;
 import com.litepan.utils.VerifyUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.connector.Request;
 import org.apache.commons.lang3.ArrayUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -166,7 +165,7 @@ public class GlobalOperationAspect {
      * @param value       参数值
      */
     private void checkValue(VerifyParam verifyParam, Object value) {
-        boolean isEmpty = value == null || StringUtils.isEmpty(String.valueOf(value));
+        boolean isEmpty = value == null || StringTools.isEmpty(String.valueOf(value));
         int length = value == null ? 0 : value.toString().length();
 
         //空校验
@@ -180,7 +179,7 @@ public class GlobalOperationAspect {
         }
 
         //正则校验
-        if (!isEmpty && !StringUtils.isEmpty(verifyParam.regex().getRegex()) && !VerifyUtils.verify(verifyParam.regex(), String.valueOf(value))) {
+        if (!isEmpty && !StringTools.isEmpty(verifyParam.regex().getRegex()) && !VerifyUtils.verify(verifyParam.regex(), String.valueOf(value))) {
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }
     }

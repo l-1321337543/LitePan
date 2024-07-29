@@ -14,7 +14,6 @@ import com.litepan.service.FileInfoService;
 import com.litepan.entity.po.FileInfo;
 import com.litepan.entity.query.FileInfoQuery;
 import com.litepan.utils.*;
-import jdk.nashorn.internal.runtime.ECMAException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.context.annotation.Lazy;
@@ -162,8 +161,8 @@ public class FileInfoServiceImpl implements FileInfoService {
     public UploadResultDTO uploadFile(SessionWebUserDTO webUserDTO, String fileId, MultipartFile file,
                                       String fileName, String filePid, String fileMD5, Integer chunkIndex, Integer chunks) {
         boolean uploadSuccess = true;
-        if (StringUtils.isEmpty(fileId)) {
-            fileId = StringUtils.getRandomString(Constants.LENGTH_10);
+        if (StringTools.isEmpty(fileId)) {
+            fileId = StringTools.getRandomString(Constants.LENGTH_10);
         }
         //返给前端的DTO
         UploadResultDTO uploadResultDTO = new UploadResultDTO();
@@ -181,7 +180,7 @@ public class FileInfoServiceImpl implements FileInfoService {
                 //在数据库中查找是否有已经转码成功的相同MD5值的文件
                 FileInfoQuery infoQuery = new FileInfoQuery();
                 infoQuery.setFileMd5(fileMD5);
-                infoQuery.setStatus(FileStatusEnums.TRANSFER_SUCCESS.getStatus());
+                infoQuery.setStatus(FileStatusEnums.USING.getStatus());
                 infoQuery.setSimplePage(new SimplePage(0, 1));
                 List<FileInfo> dbFileInfos = fileInfoMapper.selectListByQuery(infoQuery);
 
@@ -204,7 +203,7 @@ public class FileInfoServiceImpl implements FileInfoService {
                             .setLastUpdateTime(curDate)
                             .setDelFlag(FileDelFlagEnums.NORMAL.getFlag())
                             .setFileName(fileName)
-                            .setStatus(FileStatusEnums.TRANSFER_SUCCESS.getStatus());
+                            .setStatus(FileStatusEnums.USING.getStatus());
 
                     // 更新数据库
                     fileInfoMapper.insert(dbFileInfo);
@@ -247,7 +246,7 @@ public class FileInfoServiceImpl implements FileInfoService {
 
             //最后一个分片上传完成，写入缓存，记录数据库
             redisComponent.saveFileTempSize(webUserDTO.getUserId(), fileId, file.getSize());
-            String fileSuffix = StringUtils.getFileSuffix(fileName);
+            String fileSuffix = StringTools.getFileSuffix(fileName);
 
             String mouth = DateUtil.format(new Date(), DateTimePattenEnum.YYYYMM.getPatten());//和realFileName一起拼成保存在数据库的文件路径
             String realFileName = curUserFolderName + fileSuffix;//userId+fileId+fileSuffix
@@ -315,6 +314,64 @@ public class FileInfoServiceImpl implements FileInfoService {
     }
 
     /**
+     * 新建文件夹
+     *
+     * @param userId     用户Id
+     * @param folderName 文件夹名
+     * @param filePid    父级目录
+     * @return 创建好的FileInfo
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public FileInfo newFolder(String userId, String folderName, String filePid) {
+        //校验是否有重名文件夹
+        checkFileName(filePid, userId, folderName, FileFolderTypeEnums.FOLDER.getType());
+
+        FileInfo fileInfo = new FileInfo();
+        Date curDate = new Date();
+        String mouth = DateUtil.format(curDate, DateTimePattenEnum.YYYYMM.getPatten());
+        fileInfo.setFileId(StringTools.getRandomString(Constants.LENGTH_10))
+                .setFileName(folderName)
+                .setFilePid(filePid)
+                .setUserId(userId)
+                .setFolderType(FileFolderTypeEnums.FOLDER.getType())
+                .setCreateTime(curDate)
+                .setLastUpdateTime(curDate)
+                .setFilePath(mouth + "/" + folderName)
+                .setDelFlag(FileDelFlagEnums.NORMAL.getFlag())
+                .setStatus(FileStatusEnums.USING.getStatus());
+        fileInfoMapper.insert(fileInfo);
+        return fileInfo;
+    }
+
+
+
+    /**
+     * 校验文件/文件夹是否重名
+     *
+     * @param filePid    父级目录
+     * @param userId     用户Id
+     * @param filename   文件/文件夹名称
+     * @param folderType 文件类型
+     */
+    private void checkFileName(String filePid, String userId, String filename, Integer folderType) {
+        FileInfoQuery fileInfoQuery = new FileInfoQuery();
+        fileInfoQuery.setFileName(filename);
+        fileInfoQuery.setFilePid(filePid);
+        fileInfoQuery.setUserId(userId);
+        fileInfoQuery.setFolderType(folderType);
+        Integer count = fileInfoMapper.selectCountByQuery(fileInfoQuery);
+        if (count > 0) {
+            if (folderType.equals(FileFolderTypeEnums.FOLDER.getType())) {
+                throw new BusinessException("此目录下已存在同命文件夹，请修改名称");
+            }
+            if (folderType.equals(FileFolderTypeEnums.FILE.getType())) {
+                throw new BusinessException("此目录下已存在同命文件，请修改名称");
+            }
+        }
+    }
+
+    /**
      * 从文件信息表中根据下面三个参数查询是否存在文件正常的记录，若存在，则重命名，不存在则无需重命名
      *
      * @param filePid  父级ID
@@ -334,7 +391,7 @@ public class FileInfoServiceImpl implements FileInfoService {
 
         // 如果查到，则需要重命名
         if (count > 0) {
-            fileName = StringUtils.rename(fileName);
+            fileName = StringTools.rename(fileName);
         }
         // 没查到直接返回原文件名
         return fileName;
@@ -381,7 +438,7 @@ public class FileInfoServiceImpl implements FileInfoService {
             String curUserFolderName = webUserDTO.getUserId() + fileId;
             File tempFolder = new File(tempFolderName + curUserFolderName);
 
-            String fileSuffix = StringUtils.getFileSuffix(fileInfo.getFileName());
+            String fileSuffix = StringTools.getFileSuffix(fileInfo.getFileName());
 
             //目标目录
             String targetFolderName = appConfig.getProjectFolder() + Constants.FILE_FOLDER_FILE; // d:/LitePan/file/
@@ -422,7 +479,7 @@ public class FileInfoServiceImpl implements FileInfoService {
         } finally {
             FileInfo updateFIleInfo = new FileInfo();
             updateFIleInfo.setFileCover(cover)
-                    .setStatus(transferSuccess ? FileStatusEnums.TRANSFER_SUCCESS.getStatus() : FileStatusEnums.TRANSFER_FAIL.getStatus());
+                    .setStatus(transferSuccess ? FileStatusEnums.USING.getStatus() : FileStatusEnums.TRANSFER_FAIL.getStatus());
             fileInfoMapper.updateFileStatusWithOldStatus(updateFIleInfo, fileId, webUserDTO.getUserId(), FileStatusEnums.TRANSFER.getStatus());
         }
     }

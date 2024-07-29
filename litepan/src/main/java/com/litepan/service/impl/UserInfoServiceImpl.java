@@ -15,14 +15,13 @@ import com.litepan.service.UserInfoService;
 import com.litepan.entity.po.UserInfo;
 import com.litepan.entity.query.UserInfoQuery;
 import com.litepan.utils.RedisComponent;
-import com.litepan.utils.StringUtils;
+import com.litepan.utils.StringTools;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 import com.litepan.entity.vo.PaginationResultVO;
 import com.litepan.mappers.UserInfoMapper;
@@ -224,10 +223,10 @@ public class UserInfoServiceImpl implements UserInfoService {
         SysSettingDTO sysSettingDTO = redisComponent.getSysSettingDTO();
 
         UserInfo userInfo = new UserInfo();
-        userInfo.setUserId(StringUtils.getRandomNumber(Constants.LENGTH_10));
+        userInfo.setUserId(StringTools.getRandomNumber(Constants.LENGTH_10));
         userInfo.setEmail(email);
         userInfo.setNickName(nickName);
-        userInfo.setPassword(StringUtils.encodeBuMd5(password));
+        userInfo.setPassword(StringTools.encodeBuMd5(password));
         userInfo.setStatus(UserStatusEnum.ENABLE.getStatus());
         userInfo.setJoinTime(new Date());
         userInfo.setUseSpace(0L);
@@ -274,7 +273,7 @@ public class UserInfoServiceImpl implements UserInfoService {
             throw new BusinessException("邮箱不存在");
         }
         emailCodeService.checkCode(email, emailCode);
-        userInfo.setPassword(StringUtils.encodeBuMd5(password));
+        userInfo.setPassword(StringTools.encodeBuMd5(password));
         userInfoMapper.updateByEmail(userInfo, email);
     }
 }

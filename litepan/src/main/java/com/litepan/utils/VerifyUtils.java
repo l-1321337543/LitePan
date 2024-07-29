@@ -1,6 +1,5 @@
 package com.litepan.utils;
 
-import com.litepan.annotation.VerifyParam;
 import com.litepan.enums.VerifyRegexEnum;
 
 import java.util.regex.Matcher;
@@ -14,7 +13,7 @@ import java.util.regex.Pattern;
  */
 public class VerifyUtils {
     public static boolean verify(String regs, String value) {
-        if (StringUtils.isEmpty(value)) {
+        if (StringTools.isEmpty(value)) {
             return false;
         }
         Pattern pattern = Pattern.compile(regs);

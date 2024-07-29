@@ -11,7 +11,7 @@ import com.litepan.mappers.UserInfoMapper;
 import com.litepan.service.EmailCodeService;
 import com.litepan.entity.po.EmailCode;
 import com.litepan.entity.query.EmailCodeQuery;
-import com.litepan.utils.StringUtils;
+import com.litepan.utils.StringTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -146,7 +146,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
             if (user != null) {
                 throw new BusinessException("邮箱已存在");
             }
-            String code = StringUtils.getRandomNumber(Constants.LENGTH_5);
+            String code = StringTools.getRandomNumber(Constants.LENGTH_5);
 
             //发送验证码
             sendEmailCode(email, code);
@@ -164,7 +164,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
             if (user == null) {
                 throw new BusinessException("账号不存在");
             }
-            String code = StringUtils.getRandomNumber(Constants.LENGTH_5);
+            String code = StringTools.getRandomNumber(Constants.LENGTH_5);
 
             //发送验证码
             sendEmailCode(email, code);

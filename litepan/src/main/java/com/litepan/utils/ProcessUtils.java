@@ -15,7 +15,7 @@ import java.io.InputStreamReader;
 public class ProcessUtils {
 
     public static String executeCommand(String cmd, Boolean outprintLog) throws BusinessException {
-        if (StringUtils.isEmpty(cmd)) {
+        if (StringTools.isEmpty(cmd)) {
             log.error("--- 指令执行失败，因为要执行的FFmpeg指令为空！ ---");
             return null;
         }

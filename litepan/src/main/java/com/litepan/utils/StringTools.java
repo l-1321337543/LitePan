@@ -10,7 +10,7 @@ import org.apache.commons.lang3.RandomStringUtils;
  * @description: 字符串工具类
  * @date 2024/7/18 21:19
  */
-public class StringUtils {
+public class StringTools {
 
     /**
      * 生成指定长度的随机数
@@ -61,7 +61,7 @@ public class StringUtils {
      * 判断传入的文件路径字符串是否正确
      */
     public static boolean pathIsOk(String path) {
-        if (StringUtils.isEmpty(path)) {
+        if (StringTools.isEmpty(path)) {
             return true;
         }
         if (path.contains("../") || path.contains("..\\")) {

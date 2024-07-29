@@ -98,46 +98,49 @@
 
 	<!--拓展查询条件-->
 	<sql id="base_query_condition_extend">
-		<if test="query.fileIdFuzzy != null and query.fileIdFuzzy != ''">
-			and file_id like concat('%', #{query.fileIdFuzzy}, '%')
-		</if>
-		<if test="query.userIdFuzzy != null and query.userIdFuzzy != ''">
-			and user_id like concat('%', #{query.userIdFuzzy}, '%')
-		</if>
-		<if test="query.fileMd5Fuzzy != null and query.fileMd5Fuzzy != ''">
-			and file_md5 like concat('%', #{query.fileMd5Fuzzy}, '%')
-		</if>
-		<if test="query.filePidFuzzy != null and query.filePidFuzzy != ''">
-			and file_pid like concat('%', #{query.filePidFuzzy}, '%')
-		</if>
-		<if test="query.fileNameFuzzy != null and query.fileNameFuzzy != ''">
-			and file_name like concat('%', #{query.fileNameFuzzy}, '%')
-		</if>
-		<if test="query.fileCoverFuzzy != null and query.fileCoverFuzzy != ''">
-			and file_cover like concat('%', #{query.fileCoverFuzzy}, '%')
-		</if>
-		<if test="query.filePathFuzzy != null and query.filePathFuzzy != ''">
-			and file_path like concat('%', #{query.filePathFuzzy}, '%')
-		</if>
-		<if test="query.createTimeStart != null and query.createTimeStart != ''">
-			<![CDATA[ and create_time >= str_to_date(#{query.createTimeStart}, '%Y-%m-%d') ]]>
-		</if>
-		<if test="query.createTimeEnd != null and query.createTimeEnd != ''">
-			<![CDATA[ and create_time < date_sub(str_to_date(#{query.createTimeEnd}, '%Y-%m-%d'),interval -1 day) ]]>
-		</if>
-		<if test="query.lastUpdateTimeStart != null and query.lastUpdateTimeStart != ''">
-			<![CDATA[ and last_update_time >= str_to_date(#{query.lastUpdateTimeStart}, '%Y-%m-%d') ]]>
-		</if>
-		<if test="query.lastUpdateTimeEnd != null and query.lastUpdateTimeEnd != ''">
-			<![CDATA[ and last_update_time < date_sub(str_to_date(#{query.lastUpdateTimeEnd}, '%Y-%m-%d'),interval -1 day) ]]>
-		</if>
-		<if test="query.recoverTimeStart != null and query.recoverTimeStart != ''">
-			<![CDATA[ and recover_time >= str_to_date(#{query.recoverTimeStart}, '%Y-%m-%d') ]]>
-		</if>
-		<if test="query.recoverTimeEnd != null and query.recoverTimeEnd != ''">
-			<![CDATA[ and recover_time < date_sub(str_to_date(#{query.recoverTimeEnd}, '%Y-%m-%d'),interval -1 day) ]]>
-		</if>
-	</sql>
+        <if test="query.fileIdFuzzy != null and query.fileIdFuzzy != ''">
+            and file_id like concat('%', #{query.fileIdFuzzy}, '%')
+        </if>
+        <if test="query.userIdFuzzy != null and query.userIdFuzzy != ''">
+            and user_id like concat('%', #{query.userIdFuzzy}, '%')
+        </if>
+        <if test="query.fileMd5Fuzzy != null and query.fileMd5Fuzzy != ''">
+            and file_md5 like concat('%', #{query.fileMd5Fuzzy}, '%')
+        </if>
+        <if test="query.filePidFuzzy != null and query.filePidFuzzy != ''">
+            and file_pid like concat('%', #{query.filePidFuzzy}, '%')
+        </if>
+        <if test="query.fileNameFuzzy != null and query.fileNameFuzzy != ''">
+            and file_name like concat('%', #{query.fileNameFuzzy}, '%')
+        </if>
+        <if test="query.fileCoverFuzzy != null and query.fileCoverFuzzy != ''">
+            and file_cover like concat('%', #{query.fileCoverFuzzy}, '%')
+        </if>
+        <if test="query.filePathFuzzy != null and query.filePathFuzzy != ''">
+            and file_path like concat('%', #{query.filePathFuzzy}, '%')
+        </if>
+        <if test="query.createTimeStart != null and query.createTimeStart != ''">
+            <![CDATA[ and create_time >= str_to_date(#{query.createTimeStart}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="query.createTimeEnd != null and query.createTimeEnd != ''">
+            <![CDATA[ and create_time < date_sub(str_to_date(#{query.createTimeEnd}, '%Y-%m-%d'),interval -1 day) ]]>
+        </if>
+        <if test="query.lastUpdateTimeStart != null and query.lastUpdateTimeStart != ''">
+            <![CDATA[ and last_update_time >= str_to_date(#{query.lastUpdateTimeStart}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="query.lastUpdateTimeEnd != null and query.lastUpdateTimeEnd != ''">
+            <![CDATA[ and last_update_time < date_sub(str_to_date(#{query.lastUpdateTimeEnd}, '%Y-%m-%d'),interval -1 day) ]]>
+        </if>
+        <if test="query.recoverTimeStart != null and query.recoverTimeStart != ''">
+            <![CDATA[ and recover_time >= str_to_date(#{query.recoverTimeStart}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="query.recoverTimeEnd != null and query.recoverTimeEnd != ''">
+            <![CDATA[ and recover_time < date_sub(str_to_date(#{query.recoverTimeEnd}, '%Y-%m-%d'),interval -1 day) ]]>
+        </if>
+        <if test="query.fileIdArray != null and query.fileIdArray.length > 0">
+            and file_id in(<foreach collection="query.fileIdArray" separator="," item="item">#{item}</foreach>)
+        </if>
+    </sql>
 
 	<!--通用查询条件-->
 	<sql id="query_condition">
