@@ -13,6 +13,7 @@ public class Constants {
     public static final int LENGTH_5 = 5;
     public static final int LENGTH_10 = 10;
     public static final int LENGTH_15 = 15;
+    public static final int LENGTH_150 = 150;
     public static final long MB = 1024 * 1024;
     public static final int REDIS_EXPIRES_TIME_ONE_MIN = 60;
     public static final int REDIS_EXPIRES_TIME_ONE_HOUR = REDIS_EXPIRES_TIME_ONE_MIN * 60;
@@ -30,5 +31,8 @@ public class Constants {
     public static final String FILE_FOLDER_TEMP = "temp/";
     public static final String FILE_FOLDER_AVATAR_NAME = "avatar/";
     public static final String AVATAR_SUFFIX = ".jpg";
+    public static final String IMAGE_PNG_SUFFIX = ".png";
     public static final String AVATAR_DEFAULT = "default_avatar.jpg";
+    public static final String TS_NAME = "index.ts";
+    public static final String M3U8_NAME = "index.m3u8";
 }

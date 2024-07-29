@@ -13,10 +13,12 @@ import com.litepan.service.FileInfoService;
 import com.litepan.entity.query.FileInfoQuery;
 import com.litepan.entity.vo.ResponseVO;
 import com.litepan.entity.po.FileInfo;
+import com.sun.deploy.net.HttpResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 
@@ -27,7 +29,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/file")
-public class FileInfoController extends ABaseController {
+public class FileInfoController extends CommentFileController {
 
     @Resource
     private FileInfoService fileInfoService;
@@ -58,13 +60,13 @@ public class FileInfoController extends ABaseController {
     /**
      * 上传文件，前端将文件分块后，一块一块上传
      *
-     * @param fileId        非必传，文件的第一块没有fileId
-     * @param file          上传的文件本身
-     * @param fileName      文件名
-     * @param filePid       父级Id
-     * @param fileMd5       文件MD5值
-     * @param chunkIndex    分块索引
-     * @param chunks        分块总数
+     * @param fileId     非必传，文件的第一块没有fileId
+     * @param file       上传的文件本身
+     * @param fileName   文件名
+     * @param filePid    父级Id
+     * @param fileMd5    文件MD5值
+     * @param chunkIndex 分块索引
+     * @param chunks     分块总数
      * @return 文件上传状态
      */
     @PostMapping("/uploadFile")
@@ -81,6 +83,19 @@ public class FileInfoController extends ABaseController {
         UploadResultDTO uploadResultDTO = fileInfoService.uploadFile(webUserDTO, fileId, file,
                 fileName, filePid, fileMd5, chunkIndex, chunks);
         return getSuccessResponseVO(uploadResultDTO);
+    }
+
+    /**
+     * 响应图片
+     *
+     * @param imageFolder 图片文件夹
+     * @param imageName   图片名
+     */
+    @GetMapping("/getImage/{imageFolder}/{imageName}")
+    public void getImage(HttpServletResponse response,
+                         @PathVariable("imageFolder") String imageFolder,
+                         @PathVariable("imageName") String imageName) {
+        super.getImage(response,imageFolder,imageName);
     }
 
 }

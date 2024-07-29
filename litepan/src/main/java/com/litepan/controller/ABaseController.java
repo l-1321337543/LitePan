@@ -1,5 +1,6 @@
 package com.litepan.controller;
 
+import com.litepan.entity.config.AppConfig;
 import com.litepan.entity.constants.Constants;
 import com.litepan.entity.dto.SessionWebUserDTO;
 import com.litepan.entity.vo.PaginationResultVO;
@@ -9,7 +10,10 @@ import com.litepan.exception.BusinessException;
 import com.litepan.utils.CopyUtils;
 import com.litepan.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -21,6 +25,7 @@ import java.io.OutputStream;
 public class ABaseController {
     protected static final String STATUS_SUCCESS = "success";
     protected static final String STATUS_ERROR = "error";
+
 
     protected <T> ResponseVO<T> getSuccessResponseVO(T t) {
         ResponseVO<T> responseVO = new ResponseVO<>();
