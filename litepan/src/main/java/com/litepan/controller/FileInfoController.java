@@ -95,7 +95,28 @@ public class FileInfoController extends CommentFileController {
     public void getImage(HttpServletResponse response,
                          @PathVariable("imageFolder") String imageFolder,
                          @PathVariable("imageName") String imageName) {
-        super.getImage(response,imageFolder,imageName);
+        super.getImage(response, imageFolder, imageName);
+    }
+
+    /**
+     * 视频预览播放
+     *
+     * @param fileId 要播放的文件Id
+     */
+    @GetMapping("/ts/getVideoInfo/{fileId}")
+    public void getVideoInfo(HttpServletResponse response,
+                             HttpSession session,
+                             @PathVariable("fileId") String fileId) {
+        SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
+        super.getFile(response, fileId, webUserDTO.getUserId());
+    }
+
+    @RequestMapping("/getFile/{fileId}")
+    public void getFile(HttpServletResponse response,
+                             HttpSession session,
+                             @PathVariable("fileId") String fileId) {
+        SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
+        super.getFile(response, fileId, webUserDTO.getUserId());
     }
 
 }
