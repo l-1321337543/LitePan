@@ -23,6 +23,16 @@ public class StringUtils {
     }
 
     /**
+     * 生成指定长度的随机字符串
+     *
+     * @param count 指定的长度
+     * @return 生成的随机字符串
+     */
+    public static String getRandomString(int count) {
+        return RandomStringUtils.random(count, true, true);
+    }
+
+    /**
      * 判断传入的字符串是否为空
      *
      * @param str 要判断的字符串
@@ -61,14 +71,14 @@ public class StringUtils {
     }
 
     /**
-     * 给传入的文件名添加五位随机数后缀
+     * 给传入的文件名添加五位随机字符后缀
      */
     public static String rename(String fileName) {
         // 获取不加后缀的文件名
         String fileNameReal = getFileNameNoSuffix(fileName);
         // 获取文件的后缀名
         String suffix = getFileSuffix(fileName);
-        return fileNameReal + "_" + getRandomNumber(Constants.LENGTH_5) + suffix;
+        return fileNameReal + "_" + getRandomString(Constants.LENGTH_5) + suffix;
     }
 
     /**

@@ -513,8 +513,56 @@
 		</set>
 		where file_id = #{fileId} and user_id = #{userId}
 	</update>
+    <update id="updateFileStatusWithOldStatus" parameterType="com.litepan.entity.po.FileInfo">
+		update file_info
+		<set>
+			<if test="bean.fileMd5 != null">
+				file_md5 = #{bean.fileMd5},
+			</if>
+			<if test="bean.filePid != null">
+				file_pid = #{bean.filePid},
+			</if>
+			<if test="bean.fileSize != null">
+				file_size = #{bean.fileSize},
+			</if>
+			<if test="bean.fileName != null">
+				file_name = #{bean.fileName},
+			</if>
+			<if test="bean.fileCover != null">
+				file_cover = #{bean.fileCover},
+			</if>
+			<if test="bean.filePath != null">
+				file_path = #{bean.filePath},
+			</if>
+			<if test="bean.createTime != null">
+				create_time = #{bean.createTime},
+			</if>
+			<if test="bean.lastUpdateTime != null">
+				last_update_time = #{bean.lastUpdateTime},
+			</if>
+			<if test="bean.folderType != null">
+				folder_type = #{bean.folderType},
+			</if>
+			<if test="bean.fileCategory != null">
+				file_category = #{bean.fileCategory},
+			</if>
+			<if test="bean.fileType != null">
+				file_type = #{bean.fileType},
+			</if>
+			<if test="bean.status != null">
+				status = #{bean.status},
+			</if>
+			<if test="bean.recoverTime != null">
+				recover_time = #{bean.recoverTime},
+			</if>
+			<if test="bean.delFlag != null">
+				del_flag = #{bean.delFlag},
+			</if>
+		</set>
+		where file_id = #{fileId} and user_id = #{userId} and status = #{oldStatus}
+	</update>
 
-	<!--根据fileIdAndUserId删除-->
+    <!--根据fileIdAndUserId删除-->
 	<delete id="deleteByFileIdAndUserId">
 		delete
 		from file_info

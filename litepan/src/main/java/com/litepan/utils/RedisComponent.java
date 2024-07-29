@@ -55,8 +55,38 @@ public class RedisComponent {
             Long useSpace = fileInfoMapper.selectUseSpace(userId);
             userSpaceDTO.setUseSpace(useSpace);
             userSpaceDTO.setTotalSpace(getSysSettingDTO().getUserInitUseSpace());
-            saveUserSpaceUse(userId,userSpaceDTO);
+            saveUserSpaceUse(userId, userSpaceDTO);
         }
         return userSpaceDTO;
     }
+
+    /**
+     * 向Redis中存储将要上传文件的大小，因为是分片上传，后上传的"片"的文件大小会加到已上传部分上
+     */
+    public void saveFileTempSize(String userId, String fileId, Long fileSize) {
+        Long curFileSize = getFileTempSize(userId, fileId);
+        redisUtils.setEx(Constants.REDIS_KEY_USER_FILE_TEMP_SIZE + userId + fileId, curFileSize + fileSize, Constants.REDIS_EXPIRES_TIME_ONE_HOUR);
+    }
+
+    /**
+     * 从Redis中获取已经上传文件的大小，因为是分片上传，因此获取的是该文件已上传的所有分片的大小总和
+     */
+    public Long getFileTempSize(String userId, String fileId) {
+        return getFileSizeFromRedis(Constants.REDIS_KEY_USER_FILE_TEMP_SIZE + userId + fileId);
+    }
+
+    private Long getFileSizeFromRedis(String key) {
+        Object fileSize = redisUtils.get(key);
+        if (fileSize == null) {
+            return 0L;
+        }
+        if (fileSize instanceof Integer) {
+            return ((Integer) fileSize).longValue();
+        } else if (fileSize instanceof Long) {
+            return (Long) fileSize;
+        }
+        return 0L;
+    }
+
+
 }
