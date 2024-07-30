@@ -8,14 +8,17 @@ package com.litepan.entity.constants;
  */
 public class Constants {
 
+    public static final String ZERO_STR = "0";
     public static final int ZERO = 0;
     public static final int ONE = 1;
     public static final int LENGTH_5 = 5;
     public static final int LENGTH_10 = 10;
     public static final int LENGTH_15 = 15;
+    public static final int LENGTH_50 = 50;
     public static final int LENGTH_150 = 150;
     public static final long MB = 1024 * 1024;
     public static final int REDIS_EXPIRES_TIME_ONE_MIN = 60;
+    public static final int REDIS_EXPIRES_TIME_FIVE_MIN = REDIS_EXPIRES_TIME_ONE_MIN * 5;
     public static final int REDIS_EXPIRES_TIME_ONE_HOUR = REDIS_EXPIRES_TIME_ONE_MIN * 60;
     public static final int REDIS_EXPIRES_TIME_DAY = REDIS_EXPIRES_TIME_ONE_MIN * 60 * 24;
 
@@ -26,6 +29,7 @@ public class Constants {
     public static final String REDIS_KEY_SYS_SETTING = "litepan:syssetting";
     public static final String REDIS_KEY_USER_SPACE_USE = "litepan:user:spaceuse:";
     public static final String REDIS_KEY_USER_FILE_TEMP_SIZE = "litepan:user:file:temp:size:";
+    public static final String REDIS_KEY_DOWNLOAD = "litepan:download:";
 
     public static final String FILE_FOLDER_FILE = "file/";
     public static final String FILE_FOLDER_TEMP = "temp/";

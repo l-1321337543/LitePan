@@ -140,6 +140,9 @@
         <if test="query.fileIdArray != null and query.fileIdArray.length > 0">
             and file_id in(<foreach collection="query.fileIdArray" separator="," item="item">#{item}</foreach>)
         </if>
+		<if test="query.excludeFileIdArray != null and query.excludeFileIdArray.length > 0">
+			and file_id not in(<foreach collection="query.excludeFileIdArray" separator="," item="item">#{item}</foreach>)
+		</if>
     </sql>
 
 	<!--通用查询条件-->

@@ -2,24 +2,28 @@ package com.litepan.controller;
 
 import com.litepan.annotation.GlobalInterceptor;
 import com.litepan.annotation.VerifyParam;
+import com.litepan.entity.dto.DownloadFileDTO;
 import com.litepan.entity.dto.SessionWebUserDTO;
 import com.litepan.entity.dto.UploadResultDTO;
 import com.litepan.entity.vo.FileInfoVO;
 import com.litepan.entity.vo.PaginationResultVO;
 import com.litepan.enums.FileCategoryEnums;
 import com.litepan.enums.FileDelFlagEnums;
-import com.litepan.enums.FileStatusEnums;
+import com.litepan.enums.FileFolderTypeEnums;
 import com.litepan.service.FileInfoService;
 import com.litepan.entity.query.FileInfoQuery;
 import com.litepan.entity.vo.ResponseVO;
 import com.litepan.entity.po.FileInfo;
-import com.sun.deploy.net.HttpResponse;
+import com.litepan.utils.CopyUtils;
+import com.litepan.utils.StringTools;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 
@@ -136,12 +140,12 @@ public class FileInfoController extends CommentFileController {
      */
     @PostMapping("/newFoloder")
     @GlobalInterceptor(checkParams = true)
-    public ResponseVO<FileInfo> newFolder(HttpSession session,
-                                          @VerifyParam(required = true) String fileName,
-                                          @VerifyParam(required = true) String filePid) {
+    public ResponseVO<FileInfoVO> newFolder(HttpSession session,
+                                            @VerifyParam(required = true) String fileName,
+                                            @VerifyParam(required = true) String filePid) {
         SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
         FileInfo fileInfo = fileInfoService.newFolder(webUserDTO.getUserId(), fileName, filePid);
-        return getSuccessResponseVO(fileInfo);
+        return getSuccessResponseVO(CopyUtils.copy(fileInfo, FileInfoVO.class));
     }
 
     /**
@@ -153,10 +157,88 @@ public class FileInfoController extends CommentFileController {
      */
     @PostMapping("/getFolderInfo")
     @GlobalInterceptor(checkParams = true)
-    public ResponseVO<List<FileInfo>> getFolderInfo(HttpSession session,
-                                                    @VerifyParam(required = true) String path) {
+    public ResponseVO<List<FileInfoVO>> getFolderInfo(HttpSession session,
+                                                      @VerifyParam(required = true) String path) {
         SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
         return super.getFolderInfo(path, webUserDTO.getUserId());
+    }
+
+    /**
+     * 重命名文件/文件夹
+     *
+     * @param fileId   文件Id
+     * @param fileName 文件名
+     * @return 重命名后的文件信息
+     */
+    @PostMapping("/rename")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO<FileInfoVO> rename(HttpSession session,
+                                         @VerifyParam(required = true) String fileId,
+                                         @VerifyParam(required = true) String fileName) {
+        SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
+        FileInfo fileInfo = fileInfoService.rename(webUserDTO.getUserId(), fileId, fileName);
+        return getSuccessResponseVO(CopyUtils.copy(fileInfo, FileInfoVO.class));
+    }
+
+    /**
+     * 加载移动文件/文件夹时弹出的可选文件夹列表。<br/>
+     * 加载文件夹列表，并且排除当前选中的文件夹，因为不能移动到自己里面去
+     *
+     * @param filePid        父级Id
+     * @param currentFileIds 选中的文件夹的fileId
+     * @return 符合条件的文件夹列表
+     */
+    @PostMapping("/loadAllFolder")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO<List<FileInfoVO>> loadAllFolder(HttpSession session,
+                                                      @VerifyParam(required = true) String filePid,
+                                                      String currentFileIds) {
+        SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
+        FileInfoQuery fileInfoQuery = new FileInfoQuery();
+        fileInfoQuery.setFilePid(filePid);
+        if (!StringTools.isEmpty(currentFileIds)) {//如果该参数没传，则表示此次移动的都是文件，而非文件夹
+            fileInfoQuery.setExcludeFileIdArray(currentFileIds.split(","));
+        }
+        fileInfoQuery.setDelFlag(FileDelFlagEnums.NORMAL.getFlag());
+        fileInfoQuery.setUserId(webUserDTO.getUserId());
+        //只能移动到文件夹中
+        fileInfoQuery.setFolderType(FileFolderTypeEnums.FOLDER.getType());
+        fileInfoQuery.setOrderBy("create_time desc");
+        List<FileInfo> listByParam = fileInfoService.findListByParam(fileInfoQuery);
+
+        return getSuccessResponseVO(CopyUtils.copyList(listByParam, FileInfoVO.class));
+    }
+
+    /**
+     * 移动文件/文件夹到指定文件夹
+     *
+     * @param fileIds 前端选中的要移动的文件/文件夹的fileId，以","分隔
+     * @param filePid 目标目录的fileId，即将前端选中的要移动的文件/文件夹的filePid改为此值
+     * @return 修改成功
+     */
+    @PostMapping("/changeFileFolder")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO<Object> changeFileFolder(HttpSession session,
+                                               @VerifyParam(required = true) String fileIds,
+                                               @VerifyParam(required = true) String filePid) {
+        SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
+        fileInfoService.changeFileFolder(webUserDTO.getUserId(), fileIds, filePid);
+        return getSuccessResponseVO(null);
+    }
+
+    @PostMapping("createDownloadUrl/{fileId}")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO<String> createDownloadUrl(HttpSession session,
+                                                @VerifyParam(required = true) @PathVariable("fileId") String fileId) {
+        SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
+        return super.createDownloadUrl(fileId, webUserDTO.getUserId());
+    }
+
+    @GetMapping("download/{code}")
+    @GlobalInterceptor(checkParams = true, checkLogin = false)
+    public void download(HttpServletResponse response, HttpServletRequest request,
+                         @VerifyParam(required = true) @PathVariable("code") String code) throws UnsupportedEncodingException {
+        super.download(request, response, code);
     }
 
 

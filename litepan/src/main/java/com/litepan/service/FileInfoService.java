@@ -73,4 +73,22 @@ public interface FileInfoService {
      */
     FileInfo newFolder(String userId, String folderName, String filePid);
 
+    /**
+     * 重命名文件/文件夹
+     *
+     * @param fileId   文件Id
+     * @param fileName 文件名
+     * @param userId   用户Id
+     * @return 重命名后的FileInfo
+     */
+    FileInfo rename(String userId, String fileId, String fileName);
+
+    /**
+     * 移动文件/文件夹到指定文件夹
+     *
+     * @param userId  用户Id
+     * @param fileIds 前端选中的要移动的文件/文件夹的fileId，以","分隔
+     * @param filePid 目标目录的fileId，即将前端选中的要移动的文件/文件夹的filePid改为此值
+     */
+    void changeFileFolder(String userId, String fileIds, String filePid);
 }

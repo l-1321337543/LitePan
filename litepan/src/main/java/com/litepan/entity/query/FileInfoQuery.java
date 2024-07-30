@@ -134,6 +134,19 @@ public class FileInfoQuery extends BaseQuery {
      */
     private String[] fileIdArray;
 
+    /**
+     * 要排除的FileId
+     */
+    private String[] excludeFileIdArray;
+
+    public String[] getExcludeFileIdArray() {
+        return excludeFileIdArray;
+    }
+
+    public void setExcludeFileIdArray(String[] excludeFileIdArray) {
+        this.excludeFileIdArray = excludeFileIdArray;
+    }
+
     public String[] getFileIdArray() {
         return fileIdArray;
     }

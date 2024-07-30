@@ -1,6 +1,7 @@
 package com.litepan.utils;
 
 import com.litepan.entity.constants.Constants;
+import com.litepan.entity.dto.DownloadFileDTO;
 import com.litepan.entity.dto.SysSettingDTO;
 import com.litepan.entity.dto.UserSpaceDTO;
 import com.litepan.entity.po.FileInfo;
@@ -75,6 +76,9 @@ public class RedisComponent {
         return getFileSizeFromRedis(Constants.REDIS_KEY_USER_FILE_TEMP_SIZE + userId + fileId);
     }
 
+    /**
+     * 从缓存中获取文件大小，找不到默认返回0
+     */
     private Long getFileSizeFromRedis(String key) {
         Object fileSize = redisUtils.get(key);
         if (fileSize == null) {
@@ -88,5 +92,18 @@ public class RedisComponent {
         return 0L;
     }
 
+    /**
+     * 将文件下载需要校验的code存入缓存，并设置五分钟过期
+     */
+    public void saveDownloadCode(String code, DownloadFileDTO downloadFileDTO) {
+        redisUtils.setEx(Constants.REDIS_KEY_DOWNLOAD + code, downloadFileDTO, Constants.REDIS_EXPIRES_TIME_FIVE_MIN);
+    }
+
+    /**
+     * 从缓存中获取封装的下载信息
+     */
+    public DownloadFileDTO getDownloadDTO(String code) {
+        return (DownloadFileDTO) redisUtils.get(Constants.REDIS_KEY_DOWNLOAD + code);
+    }
 
 }
