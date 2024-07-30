@@ -226,6 +226,9 @@ public class FileInfoController extends CommentFileController {
         return getSuccessResponseVO(null);
     }
 
+    /**
+     * 创建一个下载code返回给前端，并不真正下载
+     */
     @PostMapping("createDownloadUrl/{fileId}")
     @GlobalInterceptor(checkParams = true)
     public ResponseVO<String> createDownloadUrl(HttpSession session,
@@ -234,11 +237,31 @@ public class FileInfoController extends CommentFileController {
         return super.createDownloadUrl(fileId, webUserDTO.getUserId());
     }
 
+    /**
+     * 通过code获取要下载的文件信息，然后下载文件
+     *
+     * @throws UnsupportedEncodingException 编码方式不支持异常
+     */
     @GetMapping("download/{code}")
     @GlobalInterceptor(checkParams = true, checkLogin = false)
     public void download(HttpServletResponse response, HttpServletRequest request,
                          @VerifyParam(required = true) @PathVariable("code") String code) throws UnsupportedEncodingException {
         super.download(request, response, code);
+    }
+
+    /**
+     * 根据文件Id将指定文件及其子文件放入回收站
+     *
+     * @param fileIds 文件Id
+     * @return 删除结果
+     */
+    @PostMapping("delFile")
+    @GlobalInterceptor(checkParams = true)
+    public ResponseVO<Object> delFile(HttpSession session,
+                                      @VerifyParam(required = true) String fileIds) {
+        SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
+        fileInfoService.removeFile2RecycleBatch(webUserDTO.getUserId(), fileIds);
+        return getSuccessResponseVO(null);
     }
 
 

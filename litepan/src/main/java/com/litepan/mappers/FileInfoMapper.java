@@ -4,6 +4,8 @@ import com.litepan.entity.po.FileInfo;
 import com.litepan.entity.query.FileInfoQuery;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 
 /**
  * @Description: 文件信息表Mapper
@@ -41,4 +43,9 @@ public interface FileInfoMapper<T, P> extends BaseMapper<FileInfo, FileInfoQuery
      */
     void updateFileStatusWithOldStatus(@Param("bean") T t, @Param("fileId") String fileId, @Param("userId") String userId, @Param("oldStatus") Integer oldStatus);
 
+    void updateFileDelFlagBatch(@Param("bean") FileInfo fileInfo,
+                                @Param("userId") String userId,
+                                @Param("filePidList") List<String> filePidList,
+                                @Param("fileIdList") List<String> fileIdList,
+                                @Param("oldDelFlag") Integer oldDelFlag);
 }

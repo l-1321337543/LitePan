@@ -91,4 +91,9 @@ public interface FileInfoService {
      * @param filePid 目标目录的fileId，即将前端选中的要移动的文件/文件夹的filePid改为此值
      */
     void changeFileFolder(String userId, String fileIds, String filePid);
+
+    /**
+     * 将文件/文件夹批量放入回收站
+     */
+    void removeFile2RecycleBatch(String userId, String fileIds);
 }

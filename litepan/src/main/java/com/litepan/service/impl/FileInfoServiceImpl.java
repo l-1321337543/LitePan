@@ -24,10 +24,7 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -443,6 +440,56 @@ public class FileInfoServiceImpl implements FileInfoService {
         });
     }
 
+    /**
+     * 根据文件Id将指定文件及其子文件放入回收站
+     *
+     * @param userId  用户Id
+     * @param fileIds 文件Id
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeFile2RecycleBatch(String userId, String fileIds) {
+        String[] fileIdArray = fileIds.split(",");
+        FileInfoQuery fileInfoQuery = new FileInfoQuery();
+        fileInfoQuery.setUserId(userId);
+        fileInfoQuery.setDelFlag(FileDelFlagEnums.NORMAL.getFlag());
+        fileInfoQuery.setFileIdArray(fileIdArray);
+        List<FileInfo> fileInfos = fileInfoMapper.selectListByQuery(fileInfoQuery);
+        if (fileInfos.isEmpty()) {
+            return;
+        }
+        //创建一个存放所有需要放入回收站的FileId的集合
+        ArrayList<String> fileIdList = new ArrayList<>();
+        fileInfos.forEach(fileInfo ->
+                findAllSubFolderFileList(fileIdList, fileInfo.getFileId(), userId, FileDelFlagEnums.NORMAL.getFlag())
+        );
+        //将该fileId集合中所有对应的文件/文件夹都设为回收站状态
+        if (!fileIdList.isEmpty()) {
+            FileInfo fileInfo = new FileInfo();
+            fileInfo.setRecoverTime(new Date());
+            fileInfo.setDelFlag(FileDelFlagEnums.RECYCLE.getFlag());
+            fileInfoMapper.updateFileDelFlagBatch(fileInfo, userId, null, fileIdList, FileDelFlagEnums.NORMAL.getFlag());
+        }
+
+    }
+
+    /**
+     * 将传入的文件Id，以及该文件下的子文件、子目录的文件Id都添加到传入的fileIdList中
+     */
+    private void findAllSubFolderFileList(List<String> fileIdList, String fileId, String userId, Integer delFlag) {
+        fileIdList.add(fileId);
+        FileInfoQuery fileInfoQuery = new FileInfoQuery();
+        fileInfoQuery.setFilePid(fileId);
+        fileInfoQuery.setUserId(userId);
+        fileInfoQuery.setDelFlag(delFlag);
+        List<FileInfo> fileInfos = fileInfoMapper.selectListByQuery(fileInfoQuery);
+        if (fileInfos.isEmpty()) {
+            return;
+        }
+        fileInfos.forEach(fileInfo -> {
+            findAllSubFolderFileList(fileIdList, fileInfo.getFileId(), userId, delFlag);
+        });
+    }
 
     /**
      * 校验文件/文件夹是否重名
