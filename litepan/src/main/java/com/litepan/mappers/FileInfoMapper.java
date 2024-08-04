@@ -43,9 +43,21 @@ public interface FileInfoMapper<T, P> extends BaseMapper<FileInfo, FileInfoQuery
      */
     void updateFileStatusWithOldStatus(@Param("bean") T t, @Param("fileId") String fileId, @Param("userId") String userId, @Param("oldStatus") Integer oldStatus);
 
+    /**
+     * 批量更新文件的删除状态
+     *
+     * @param fileInfo    封装新状态信息
+     * @param userId      文件ID
+     * @param filePidList 根据文件的FilePid更新
+     * @param fileIdList  根据文件的FileId更新
+     * @param oldDelFlag  旧的删除状态
+     */
     void updateFileDelFlagBatch(@Param("bean") FileInfo fileInfo,
                                 @Param("userId") String userId,
                                 @Param("filePidList") List<String> filePidList,
                                 @Param("fileIdList") List<String> fileIdList,
                                 @Param("oldDelFlag") Integer oldDelFlag);
+
+    void delFileBatch(@Param("userId") String userId,
+                      @Param("fileIdList") List<String> fileIdList);
 }

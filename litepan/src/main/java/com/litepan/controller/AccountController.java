@@ -33,7 +33,6 @@ import java.io.PrintWriter;
  * @date: 2024/07/09
  */
 @RestController
-//@RequestMapping("/userInfo")
 @Slf4j
 public class AccountController extends ABaseController {
 

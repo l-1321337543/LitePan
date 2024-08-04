@@ -93,7 +93,18 @@ public interface FileInfoService {
     void changeFileFolder(String userId, String fileIds, String filePid);
 
     /**
-     * 将文件/文件夹批量放入回收站
+     * 根据文件Id将指定文件放入回收站<br/>
+     * 其子文件标记为删除
      */
     void removeFile2RecycleBatch(String userId, String fileIds);
+
+    /**
+     * 将回收站的文件还原
+     */
+    void recoverFileBatch(String userId, String fileIds);
+
+    /**
+     * 将回收站的文件删除
+     */
+    void delFileBatch(String userId, String fileIds,Boolean isAdmin);
 }

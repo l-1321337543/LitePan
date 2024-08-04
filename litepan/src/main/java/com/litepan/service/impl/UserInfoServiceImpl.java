@@ -253,7 +253,11 @@ public class UserInfoServiceImpl implements UserInfoService {
         SessionWebUserDTO sessionWebUserDto = new SessionWebUserDTO();
         sessionWebUserDto.setUserId(userInfo.getUserId());
         sessionWebUserDto.setNickName(userInfo.getNickName());
-        sessionWebUserDto.setAdmin(ArrayUtils.contains(appConfig.getAdminEmails().split(","), email));
+        if (ArrayUtils.contains(appConfig.getAdminEmails().split(","), email)) {
+            sessionWebUserDto.setIsAdmin(true);
+        } else {
+            sessionWebUserDto.setIsAdmin(false);
+        }
 
         // 用户空间
         UserSpaceDTO userSpaceDTO = new UserSpaceDTO();

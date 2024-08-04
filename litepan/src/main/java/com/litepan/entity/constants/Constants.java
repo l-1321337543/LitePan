@@ -14,6 +14,7 @@ public class Constants {
     public static final int LENGTH_5 = 5;
     public static final int LENGTH_10 = 10;
     public static final int LENGTH_15 = 15;
+    public static final int LENGTH_20 = 20;
     public static final int LENGTH_50 = 50;
     public static final int LENGTH_150 = 150;
     public static final long MB = 1024 * 1024;

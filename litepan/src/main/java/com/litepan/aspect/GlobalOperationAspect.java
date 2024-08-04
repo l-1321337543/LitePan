@@ -113,7 +113,7 @@ public class GlobalOperationAspect {
             throw new BusinessException(ResponseCodeEnum.CODE_901);
         }
         // 如果需要校验管理员，但是登陆的账户并不是管理员账户，则为非法访问
-        if (checkAdmin && !sessionWebUserDTO.isAdmin()) {
+        if (checkAdmin && !sessionWebUserDTO.getIsAdmin()) {
             throw new BusinessException(ResponseCodeEnum.CODE_404);
         }
     }

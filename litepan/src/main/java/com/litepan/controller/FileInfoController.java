@@ -250,7 +250,8 @@ public class FileInfoController extends CommentFileController {
     }
 
     /**
-     * 根据文件Id将指定文件及其子文件放入回收站
+     * 根据文件Id将指定文件放入回收站<br/>
+     * 其子文件标记为删除
      *
      * @param fileIds 文件Id
      * @return 删除结果

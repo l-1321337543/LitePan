@@ -11,8 +11,7 @@ import lombok.Data;
 @Data
 public class SessionWebUserDTO {
     private String userId;
-    //    private String email;
     private String nickName;
-    private boolean isAdmin = false;// 默认为false
+    private Boolean isAdmin;
     private String avatar;
 }

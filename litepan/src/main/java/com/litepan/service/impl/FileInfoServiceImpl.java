@@ -16,6 +16,7 @@ import com.litepan.entity.query.FileInfoQuery;
 import com.litepan.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -235,17 +236,15 @@ public class FileInfoServiceImpl implements FileInfoService {
             File newFile = new File(tempFileFolder.getPath() + "/" + chunkIndex);
             file.transferTo(newFile);
 
+            //保存本次分片大小到缓存中
+            redisComponent.saveFileTempSize(webUserDTO.getUserId(), fileId, file.getSize());
             if (chunkIndex < chunks - 1) {//如果不是最后一片，继续上传
-                //保存本次分片大小到缓存中
-                redisComponent.saveFileTempSize(webUserDTO.getUserId(), fileId, file.getSize());
-
                 //设置上传状态为上传中，并返回给前端，以便其继续上传
                 uploadResultDTO.setStatus(UploadStatusEnums.UPLOADING.getCode());
                 return uploadResultDTO;
             }
 
             //最后一个分片上传完成，写入缓存，记录数据库
-            redisComponent.saveFileTempSize(webUserDTO.getUserId(), fileId, file.getSize());
             String fileSuffix = StringTools.getFileSuffix(fileName);
 
             String mouth = DateUtil.format(new Date(), DateTimePattenEnum.YYYYMM.getPatten());//和realFileName一起拼成保存在数据库的文件路径
@@ -376,9 +375,9 @@ public class FileInfoServiceImpl implements FileInfoService {
         //二次查询数据库
         FileInfoQuery fileInfoQuery = new FileInfoQuery();
         fileInfoQuery.setFilePid(filePid);
-//        fileInfoQuery.setFileId(fileId);
         fileInfoQuery.setUserId(userId);
         fileInfoQuery.setFileName(fileName);
+        fileInfoQuery.setDelFlag(FileDelFlagEnums.NORMAL.getFlag());
         Integer count = fileInfoMapper.selectCountByQuery(fileInfoQuery);
         if (count > 1) {
             throw new BusinessException("文件名" + fileName + "已存在");
@@ -441,7 +440,8 @@ public class FileInfoServiceImpl implements FileInfoService {
     }
 
     /**
-     * 根据文件Id将指定文件及其子文件放入回收站
+     * 根据文件Id将指定文件放入回收站<br/>
+     * 其子文件标记为删除
      *
      * @param userId  用户Id
      * @param fileIds 文件Id
@@ -458,19 +458,122 @@ public class FileInfoServiceImpl implements FileInfoService {
         if (fileInfos.isEmpty()) {
             return;
         }
-        //创建一个存放所有需要放入回收站的FileId的集合
+        //前端选择的需要移入回收站的FileId的集合
+        ArrayList<String> originFileIdList = new ArrayList<>();
+        fileInfos.forEach(fileInfo ->
+                originFileIdList.add(fileInfo.getFileId())
+        );
+
+        //创建一个存放所有需要改动的FileId的集合
         ArrayList<String> fileIdList = new ArrayList<>();
         fileInfos.forEach(fileInfo ->
                 findAllSubFolderFileList(fileIdList, fileInfo.getFileId(), userId, FileDelFlagEnums.NORMAL.getFlag())
         );
-        //将该fileId集合中所有对应的文件/文件夹都设为回收站状态
+
+        //将需要移入回收站的FileId的集合删除
+        fileIdList.removeAll(originFileIdList);
+
+        //将该集合中剩下的fileId所有对应的文件/文件夹都设为删除状态
         if (!fileIdList.isEmpty()) {
             FileInfo fileInfo = new FileInfo();
-            fileInfo.setRecoverTime(new Date());
-            fileInfo.setDelFlag(FileDelFlagEnums.RECYCLE.getFlag());
+            fileInfo.setDelFlag(FileDelFlagEnums.DEL.getFlag());
             fileInfoMapper.updateFileDelFlagBatch(fileInfo, userId, null, fileIdList, FileDelFlagEnums.NORMAL.getFlag());
         }
 
+        //将前端选择的文件/文件夹都设为回收站状态
+        if (!originFileIdList.isEmpty()) {
+            FileInfo fileInfo = new FileInfo();
+            fileInfo.setRecoverTime(new Date());
+            fileInfo.setDelFlag(FileDelFlagEnums.RECYCLE.getFlag());
+            fileInfoMapper.updateFileDelFlagBatch(fileInfo, userId, null, originFileIdList, FileDelFlagEnums.NORMAL.getFlag());
+        }
+    }
+
+    /**
+     * 将回收站的文件还原<br/>
+     * 将回收站的文件还原到根目录，若要还原的文件夹内部有文件，还原到原目录。<br/>
+     * 若要还原的文件和当前根目录文件存在命名冲突，则对要还原的文件重命名
+     *
+     * @param userId  用户Id
+     * @param fileIds 文件Id
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void recoverFileBatch(String userId, String fileIds) {
+        String[] fileIdArray = fileIds.split(",");
+        FileInfoQuery fileInfoQuery = new FileInfoQuery();
+        fileInfoQuery.setUserId(userId);
+        fileInfoQuery.setFileIdArray(fileIdArray);
+        fileInfoQuery.setDelFlag(FileDelFlagEnums.RECYCLE.getFlag());
+        List<FileInfo> recycleFiles = fileInfoMapper.selectListByQuery(fileInfoQuery);
+        if (recycleFiles.isEmpty()) {
+            return;
+        }
+        List<String> recycleFileIds = new ArrayList<>();
+        recycleFiles.forEach(recycleFile -> {
+            findAllSubFolderFileList(recycleFileIds, recycleFile.getFileId(), userId, FileDelFlagEnums.DEL.getFlag());
+        });
+
+        fileInfoQuery = new FileInfoQuery();
+        fileInfoQuery.setFilePid(Constants.ZERO_STR);
+        fileInfoQuery.setUserId(userId);
+        fileInfoQuery.setDelFlag(FileDelFlagEnums.NORMAL.getFlag());
+        List<FileInfo> rootFileList = fileInfoMapper.selectListByQuery(fileInfoQuery);
+
+        //将根目录的文件列表转换为fileName作为key，FileInfo作为Value的Map
+        Map<String, FileInfo> fileNameMap = rootFileList.stream()
+                .collect(Collectors.toMap(FileInfo::getFileName, Function.identity(), (date1, date2) -> date2));
+        recycleFiles.forEach(recycleFile -> {
+            //如果还原到根目录的文件和根目录原有的文件重名，则重命名
+            if (fileNameMap.get(recycleFile.getFileName()) != null) {
+                FileInfo updateFile = new FileInfo();
+                updateFile.setFileName(StringTools.rename(recycleFile.getFileName()));
+                fileInfoMapper.updateByFileIdAndUserId(updateFile, recycleFile.getFileId(), userId);
+            }
+        });
+        //将所有子文件恢复
+        FileInfo updateFileInfo = new FileInfo();
+        updateFileInfo.setDelFlag(FileDelFlagEnums.NORMAL.getFlag());
+        fileInfoMapper.updateFileDelFlagBatch(updateFileInfo, userId, null, recycleFileIds, FileDelFlagEnums.DEL.getFlag());
+        //将前端选中的文件恢复到根目录
+        List<String> originFileIds = Arrays.asList(fileIdArray);
+        updateFileInfo.setFilePid(Constants.ZERO_STR);
+        updateFileInfo.setLastUpdateTime(new Date());
+        fileInfoMapper.updateFileDelFlagBatch(updateFileInfo, userId, null, originFileIds, FileDelFlagEnums.RECYCLE.getFlag());
+    }
+
+    /**
+     * 批量删除文件（删除数据库中的记录）
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void delFileBatch(String userId, String fileIds, Boolean isAdmin) {
+        String[] fileIdArray = fileIds.split(",");
+        FileInfoQuery fileInfoQuery = new FileInfoQuery();
+        fileInfoQuery.setUserId(userId);
+        fileInfoQuery.setDelFlag(FileDelFlagEnums.RECYCLE.getFlag());
+        fileInfoQuery.setFileIdArray(fileIdArray);
+        List<FileInfo> delFileList = fileInfoMapper.selectListByQuery(fileInfoQuery);
+        if (delFileList.isEmpty()) {
+            return;
+        }
+        List<String> allDelFileIds = new ArrayList<>();
+        delFileList.forEach(delFile -> {
+            findAllSubFolderFileList(allDelFileIds, delFile.getFileId(), userId, FileDelFlagEnums.DEL.getFlag());
+        });
+        if (!allDelFileIds.isEmpty()) {
+            fileInfoMapper.delFileBatch(userId, allDelFileIds);
+        }
+        //更新用户使用空间
+        Long useSpace = fileInfoMapper.selectUseSpace(userId);
+        UserInfo userInfo = new UserInfo();
+        userInfo.setUseSpace(useSpace);
+        //更新数据库
+        userInfoMapper.updateByUserId(userInfo, userId);
+        //更新缓存
+        UserSpaceDTO userSpaceDTO = redisComponent.getUserSpaceUse(userId);
+        userSpaceDTO.setUseSpace(useSpace);
+        redisComponent.saveUserSpaceUse(userId, userSpaceDTO);
     }
 
     /**
@@ -505,6 +608,7 @@ public class FileInfoServiceImpl implements FileInfoService {
         fileInfoQuery.setFilePid(filePid);
         fileInfoQuery.setUserId(userId);
         fileInfoQuery.setFolderType(folderType);
+        fileInfoQuery.setDelFlag(FileDelFlagEnums.NORMAL.getFlag());
         Integer count = fileInfoMapper.selectCountByQuery(fileInfoQuery);
         if (count > 0) {
             if (folderType.equals(FileFolderTypeEnums.FOLDER.getType())) {
