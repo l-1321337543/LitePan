@@ -5,8 +5,11 @@ import com.litepan.entity.dto.DownloadFileDTO;
 import com.litepan.entity.dto.SysSettingDTO;
 import com.litepan.entity.dto.UserSpaceDTO;
 import com.litepan.entity.po.FileInfo;
+import com.litepan.entity.po.UserInfo;
 import com.litepan.entity.query.FileInfoQuery;
+import com.litepan.entity.query.UserInfoQuery;
 import com.litepan.mappers.FileInfoMapper;
+import com.litepan.mappers.UserInfoMapper;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -25,6 +28,9 @@ public class RedisComponent {
     @Resource
     private FileInfoMapper<FileInfo, FileInfoQuery> fileInfoMapper;
 
+    @Resource
+    private UserInfoMapper<UserInfo, UserInfoQuery> userInfoMapper;
+
     /**
      * 从缓存获取邮件内容，获取不到就将邮件的内容存入redis
      *
@@ -36,6 +42,12 @@ public class RedisComponent {
             sysSettingDTO = new SysSettingDTO();
             redisUtils.set(Constants.REDIS_KEY_SYS_SETTING, sysSettingDTO);
         }
+        return sysSettingDTO;
+    }
+
+
+    public SysSettingDTO saveSysSettingDTO(SysSettingDTO sysSettingDTO) {
+        redisUtils.set(Constants.REDIS_KEY_SYS_SETTING, sysSettingDTO);
         return sysSettingDTO;
     }
 
@@ -66,7 +78,9 @@ public class RedisComponent {
      */
     public void saveFileTempSize(String userId, String fileId, Long fileSize) {
         Long curFileSize = getFileTempSize(userId, fileId);
-        redisUtils.setEx(Constants.REDIS_KEY_USER_FILE_TEMP_SIZE + userId + fileId, curFileSize + fileSize, Constants.REDIS_EXPIRES_TIME_ONE_HOUR);
+        redisUtils.setEx(Constants.REDIS_KEY_USER_FILE_TEMP_SIZE + userId + fileId,
+                curFileSize + fileSize,
+                Constants.REDIS_EXPIRES_TIME_ONE_HOUR);
     }
 
     /**
@@ -106,4 +120,10 @@ public class RedisComponent {
         return (DownloadFileDTO) redisUtils.get(Constants.REDIS_KEY_DOWNLOAD + code);
     }
 
+    public void saveUserSpaceUseByAdmin(String userId) {
+        UserSpaceDTO userSpaceDTO = new UserSpaceDTO();
+        userSpaceDTO.setUseSpace(fileInfoMapper.selectUseSpace(userId));
+        userSpaceDTO.setTotalSpace(userInfoMapper.selectByUserId(userId).getTotalSpace());
+        redisUtils.setEx(Constants.REDIS_KEY_USER_SPACE_USE + userId, userSpaceDTO, Constants.REDIS_EXPIRES_TIME_DAY);
+    }
 }

@@ -551,7 +551,9 @@ public class FileInfoServiceImpl implements FileInfoService {
         String[] fileIdArray = fileIds.split(",");
         FileInfoQuery fileInfoQuery = new FileInfoQuery();
         fileInfoQuery.setUserId(userId);
-        fileInfoQuery.setDelFlag(FileDelFlagEnums.RECYCLE.getFlag());
+        if (!isAdmin) {
+            fileInfoQuery.setDelFlag(FileDelFlagEnums.RECYCLE.getFlag());
+        }
         fileInfoQuery.setFileIdArray(fileIdArray);
         List<FileInfo> delFileList = fileInfoMapper.selectListByQuery(fileInfoQuery);
         if (delFileList.isEmpty()) {

@@ -139,6 +139,19 @@ public class FileInfoQuery extends BaseQuery {
      */
     private String[] excludeFileIdArray;
 
+    /**
+     * 用户昵称
+     */
+    private Boolean queryNickName;
+
+    public Boolean getQueryNickName() {
+        return queryNickName;
+    }
+
+    public void setQueryNickName(Boolean queryNickName) {
+        this.queryNickName = queryNickName;
+    }
+
     public String[] getExcludeFileIdArray() {
         return excludeFileIdArray;
     }

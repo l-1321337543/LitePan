@@ -60,4 +60,6 @@ public interface FileInfoMapper<T, P> extends BaseMapper<FileInfo, FileInfoQuery
 
     void delFileBatch(@Param("userId") String userId,
                       @Param("fileIdList") List<String> fileIdList);
+
+    void delFileByUserId(@Param("userId") String userId);
 }

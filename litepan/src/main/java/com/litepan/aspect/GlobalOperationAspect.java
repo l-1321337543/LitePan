@@ -21,6 +21,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Objects;
@@ -156,6 +157,26 @@ public class GlobalOperationAspect {
 
     //TODO 对象类型参数校验 视频没讲，在论坛项目有
     private void checkObjValue(Parameter parameter, Object value) {
+        try {
+            String typeName = parameter.getParameterizedType().getTypeName();
+            Class clazz = Class.forName(typeName);
+            Field[] fields = clazz.getDeclaredFields();
+            for (Field field : fields) {
+                VerifyParam fieldVerifyParam = field.getAnnotation(VerifyParam.class);
+                if (fieldVerifyParam == null) {
+                    continue;
+                }
+                field.setAccessible(true);
+                Object resultValue = field.get(value);
+                checkValue(fieldVerifyParam, resultValue);
+            }
+        } catch (BusinessException e) {
+            log.error("校验参数失败", e);
+            throw e;
+        } catch (Exception e) {
+            log.error("校验参数失败", e);
+            throw new BusinessException(ResponseCodeEnum.CODE_600);
+        }
     }
 
     /**

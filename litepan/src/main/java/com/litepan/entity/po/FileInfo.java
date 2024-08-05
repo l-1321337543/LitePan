@@ -104,6 +104,8 @@ public class FileInfo implements Serializable {
      */
     private Integer delFlag;
 
+    private String nickName;
+
 
     @Override
     public String toString() {

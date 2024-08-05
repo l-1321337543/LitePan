@@ -280,4 +280,24 @@ public class UserInfoServiceImpl implements UserInfoService {
         userInfo.setPassword(StringTools.encodeBuMd5(password));
         userInfoMapper.updateByEmail(userInfo, email);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateUserStatus(String userId, Integer status) {
+        UserInfo userInfo = new UserInfo();
+        userInfo.setStatus(status);
+        if (status.equals(UserStatusEnum.DISABLE.getStatus())) {
+            userInfo.setUseSpace(0L);
+            fileInfoMapper.delFileByUserId(userId);
+        }
+        userInfoMapper.updateByUserId(userInfo, userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changeUserSpace(String userId, Long changeSpace) {
+        long space = changeSpace * Constants.MB;
+        userInfoMapper.updateUseSpaceByUserId(userId, null, space);
+        redisComponent.saveUserSpaceUseByAdmin(userId);
+    }
 }

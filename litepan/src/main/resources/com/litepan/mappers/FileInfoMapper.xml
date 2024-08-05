@@ -159,7 +159,10 @@
     <select id="selectListByQuery" resultMap="base_result_map">
         SELECT
         <include refid="base_column_list"/>
-        FROM file_info
+            <if test="query.queryNickName != null and query.queryNickName">
+                ,(select nick_name from user_info u where u.user_id = f.user_id) nickName
+            </if>
+        FROM file_info f
         <include refid="query_condition"/>
         <if test="query.orderBy != null">order by ${query.orderBy}</if>
         <if test="query.simplePage != null">limit #{query.simplePage.start},#{query.simplePage.end}</if>
@@ -645,6 +648,13 @@
         where
         user_id = #{userId}
         and file_id in(<foreach collection="fileIdList" item="item" separator=",">#{item}</foreach>)
+    </delete>
+
+    <!--根据userId删除文件信息-->
+    <delete id="delFileByUserId">
+        delete
+        from file_info
+        where user_id = #{userId}
     </delete>
 
 </mapper>
