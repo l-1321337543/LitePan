@@ -28,4 +28,6 @@ public interface FileShareMapper<T, P> extends BaseMapper<FileShare, FileShareQu
 
     Integer delFileShareBatch(@Param("shareIdArray") String[] shareIdArray, @Param("userId") String userId);
 
+    Integer updateShareShowCount(@Param("shareId") String shareId);
+
 }

@@ -6,6 +6,7 @@ import com.litepan.entity.dto.DownloadFileDTO;
 import com.litepan.entity.po.FileInfo;
 import com.litepan.entity.query.FileInfoQuery;
 import com.litepan.entity.vo.FileInfoVO;
+import com.litepan.entity.vo.FolderVO;
 import com.litepan.entity.vo.ResponseVO;
 import com.litepan.enums.FileCategoryEnums;
 import com.litepan.enums.FileDelFlagEnums;
@@ -120,7 +121,7 @@ public class CommentFileController extends ABaseController {
      * @param userId 用户Id
      * @return 该文件夹及其所有父级目录的列表
      */
-    protected ResponseVO<List<FileInfoVO>> getFolderInfo(String path, String userId) {
+    protected ResponseVO<List<FolderVO>> getFolderInfo(String path, String userId) {
         //从path中分离出所有的fileId
         String[] fileIdArray = path.split("/");
         //设置好query属性
@@ -135,7 +136,7 @@ public class CommentFileController extends ABaseController {
         //查询符合条件的文件夹列表
         List<FileInfo> fileInfoList = fileInfoService.findListByParam(fileInfoQuery);
 
-        return getSuccessResponseVO(CopyUtils.copyList(fileInfoList, FileInfoVO.class));
+        return getSuccessResponseVO(CopyUtils.copyList(fileInfoList, FolderVO.class));
     }
 
     /**

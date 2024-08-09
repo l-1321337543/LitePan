@@ -95,6 +95,7 @@
         <if test="query.delFlag != null">
             and del_flag = #{query.delFlag}
         </if>
+
     </sql>
 
     <!--拓展查询条件-->
@@ -145,6 +146,10 @@
             and file_id not in(<foreach collection="query.excludeFileIdArray" separator="," item="item">
             #{item}</foreach>)
         </if>
+        <if test="query.queryExpire != null and query.queryExpire">
+            <![CDATA[ and recover_time < date_sub(now(),interval 10 day) ]]>
+        </if>
+
     </sql>
 
     <!--通用查询条件-->
@@ -159,9 +164,9 @@
     <select id="selectListByQuery" resultMap="base_result_map">
         SELECT
         <include refid="base_column_list"/>
-            <if test="query.queryNickName != null and query.queryNickName">
-                ,(select nick_name from user_info u where u.user_id = f.user_id) nickName
-            </if>
+        <if test="query.queryNickName != null and query.queryNickName">
+            ,(select nick_name from user_info u where u.user_id = f.user_id) nickName
+        </if>
         FROM file_info f
         <include refid="query_condition"/>
         <if test="query.orderBy != null">order by ${query.orderBy}</if>

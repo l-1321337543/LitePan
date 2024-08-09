@@ -42,6 +42,13 @@ public class FileInfoVO {
     private Date lastUpdateTime;
 
     /**
+     * 进入回收站的时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date recoverTime;
+
+    /**
      * 0:文件 1:目录
      */
     private Integer folderType;

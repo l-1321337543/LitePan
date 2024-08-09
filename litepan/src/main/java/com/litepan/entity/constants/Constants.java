@@ -24,6 +24,7 @@ public class Constants {
     public static final int REDIS_EXPIRES_TIME_DAY = REDIS_EXPIRES_TIME_ONE_MIN * 60 * 24;
 
     public static final String SESSION_KEY = "session_key";
+    public static final String SESSION_SHARE_KEY = "session_share_key_";
     public static final String CHECK_CODE_KEY = "check_code_key";
     public static final String CHECK_CODE_KEY_EMAIL = "check_code_key_email";
 

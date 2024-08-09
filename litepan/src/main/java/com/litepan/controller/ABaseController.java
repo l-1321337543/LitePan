@@ -1,6 +1,7 @@
 package com.litepan.controller;
 
 import com.litepan.entity.constants.Constants;
+import com.litepan.entity.dto.SessionShareDTO;
 import com.litepan.entity.dto.SessionWebUserDTO;
 import com.litepan.entity.vo.PaginationResultVO;
 import com.litepan.enums.ResponseCodeEnum;
@@ -120,5 +121,10 @@ public class ABaseController {
      */
     protected SessionWebUserDTO getUserInfoFromSession(HttpSession session) {
         return (SessionWebUserDTO) session.getAttribute(Constants.SESSION_KEY);
+    }
+
+    protected SessionShareDTO getSessionShareFromSession(HttpSession session, String shareId) {
+        return (SessionShareDTO)
+                session.getAttribute(Constants.SESSION_SHARE_KEY + shareId);
     }
 }

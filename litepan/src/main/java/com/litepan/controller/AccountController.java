@@ -288,8 +288,4 @@ public class AccountController extends ABaseController {
         userInfoService.updateUserInfoByUserId(userInfo, sessionWebUserDto.getUserId());
         return getSuccessResponseVO(null);
     }
-
-
-
-
 }

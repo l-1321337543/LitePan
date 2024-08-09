@@ -6,6 +6,7 @@ import com.litepan.entity.dto.DownloadFileDTO;
 import com.litepan.entity.dto.SessionWebUserDTO;
 import com.litepan.entity.dto.UploadResultDTO;
 import com.litepan.entity.vo.FileInfoVO;
+import com.litepan.entity.vo.FolderVO;
 import com.litepan.entity.vo.PaginationResultVO;
 import com.litepan.enums.FileCategoryEnums;
 import com.litepan.enums.FileDelFlagEnums;
@@ -157,8 +158,8 @@ public class FileInfoController extends CommentFileController {
      */
     @PostMapping("/getFolderInfo")
     @GlobalInterceptor(checkParams = true)
-    public ResponseVO<List<FileInfoVO>> getFolderInfo(HttpSession session,
-                                                      @VerifyParam(required = true) String path) {
+    public ResponseVO<List<FolderVO>> getFolderInfo(HttpSession session,
+                                                    @VerifyParam(required = true) String path) {
         SessionWebUserDTO webUserDTO = getUserInfoFromSession(session);
         return super.getFolderInfo(path, webUserDTO.getUserId());
     }

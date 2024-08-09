@@ -326,6 +326,11 @@
         </set>
         where share_id = #{shareId}
     </update>
+    <update id="updateShareShowCount">
+        update file_share
+        set show_count = show_count + 1
+        where share_id = #{shareId}
+    </update>
 
     <!--根据shareId删除-->
     <delete id="deleteByShareId">

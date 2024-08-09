@@ -144,6 +144,16 @@ public class FileInfoQuery extends BaseQuery {
      */
     private Boolean queryNickName;
 
+    private Boolean queryExpire;
+
+    public Boolean getQueryExpire() {
+        return queryExpire;
+    }
+
+    public void setQueryExpire(Boolean queryExpire) {
+        this.queryExpire = queryExpire;
+    }
+
     public Boolean getQueryNickName() {
         return queryNickName;
     }

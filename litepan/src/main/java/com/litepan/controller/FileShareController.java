@@ -11,9 +11,7 @@ import com.litepan.entity.po.FileShare;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.List;
 
 
 /**
@@ -55,7 +53,7 @@ public class FileShareController extends ABaseController {
         fileShare.setFileId(fileId);
         fileShare.setValidType(validType);
         fileShare.setUserId(webUserDTO.getUserId());
-        fileShareService.saveShare(fileShare);
+        fileShareService.saveShareInfo(fileShare);
         return getSuccessResponseVO(fileShare);
     }
 

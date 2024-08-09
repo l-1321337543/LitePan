@@ -176,7 +176,7 @@ public class FileInfoServiceImpl implements FileInfoService {
             //获取用户空间使用情况
             UserSpaceDTO userSpaceUse = redisComponent.getUserSpaceUse(webUserDTO.getUserId());
 
-            //根据第一快的MD5值判断是否可以秒传
+            //根据第一块的MD5值判断是否可以秒传
             if (chunkIndex == 0) {
                 //在数据库中查找是否有已经转码成功的相同MD5值的文件
                 FileInfoQuery infoQuery = new FileInfoQuery();

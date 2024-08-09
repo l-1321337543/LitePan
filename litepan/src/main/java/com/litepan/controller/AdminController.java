@@ -9,10 +9,7 @@ import com.litepan.entity.po.FileInfo;
 import com.litepan.entity.po.UserInfo;
 import com.litepan.entity.query.FileInfoQuery;
 import com.litepan.entity.query.UserInfoQuery;
-import com.litepan.entity.vo.FileInfoVO;
-import com.litepan.entity.vo.PaginationResultVO;
-import com.litepan.entity.vo.ResponseVO;
-import com.litepan.entity.vo.UserInfoVO;
+import com.litepan.entity.vo.*;
 import com.litepan.service.FileInfoService;
 import com.litepan.service.UserInfoService;
 import com.litepan.utils.RedisComponent;
@@ -114,7 +111,7 @@ public class AdminController extends CommentFileController {
 
     @PostMapping("/getFolderInfo")
     @GlobalInterceptor(checkAdmin = true, checkParams = true)
-    public ResponseVO<List<FileInfoVO>> getFolderInfo(@VerifyParam(required = true) String path) {
+    public ResponseVO<List<FolderVO>> getFolderInfo(@VerifyParam(required = true) String path) {
         return super.getFolderInfo(path, null);
     }
 
